@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>D&D Combat Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>D&D Combat Tracker</h1>
+
+<!-- Combat Saves -->
+<div id="combatSavesBar" class="panel">
+  <div class="saveRow">
+    <strong>Combat Saves</strong>
+    <input type="text" id="saveName" placeholder="Save name">
+    <select id="saveSelect"></select>
+    <button id="saveCombat" type="button">Save</button>
+    <button id="loadCombat" class="secondary" type="button">Load</button>
+    <button id="deleteCombat" class="danger" type="button">Delete</button>
+  </div>
+  <div id="combatSaveStatus" class="subtle"></div>
+</div>
+
+<div id="mainContainer">
+  <!-- Left Column -->
+  <div id="leftColumn">
+
+    <!-- Controls -->
+    <div id="controls" class="panel">
+      <div class="infoHeader">
+        <h3 id="round">Round: 1</h3>
+        <div class="headerActions">
+          <button id="quickAddPanel" class="secondary" type="button">Add Combatant</button>
+        </div>
+      </div>
+      <div class="turnControls">
+        <button id="prevTurn">Previous Turn</button>
+        <button id="nextTurn">Next Turn</button>
+        <button id="resetCombat" class="danger">Reset Combat</button>
+        <button id="quickCreatePanel" class="secondary" type="button">Create Combatant</button>
+      </div>
+    </div>
+
+    <!-- Combat List -->
+    <ul id="combatList"></ul>
+
+    <!-- Combined Info Panel -->
+    <div id="infoPanel" class="panel">
+      <div class="infoHeader">
+        <h3>Info Panel</h3>
+        <button id="toggleInfoPanel" class="secondary">Hide</button>
+      </div>
+
+      <div id="panelContent"></div>
+      <div id="panelHint" class="subtle">Click a combatant to open this panel.</div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="drawerBackdrop" class="drawerBackdrop" aria-hidden="true"></div>
+
+<div id="drawerContainer" class="drawerContainer">
+  <!-- Create Statblock -->
+  <div id="createStatblock" class="panel drawerPanel" data-drawer-panel="createStatblock">
+    <div class="infoHeader">
+      <h3 id="createPanelTitle">Create</h3>
+      <div class="headerActions">
+        <div class="panelTabs" role="tablist" aria-label="Create panel tabs">
+          <button id="tabStatblock" class="tabBtn" type="button">Monster</button>
+          <button id="tabPlayer" class="tabBtn" type="button">Player</button>
+        </div>
+        <button id="toggleCreateStatblock" class="secondary">Close</button>
+      </div>
+    </div>
+    <div id="statblockPanel" class="statblockGrid">
+      <input type="text" id="sbName" placeholder="Name">
+      <input type="number" id="sbAC" placeholder="AC" min="0">
+      <input type="text" id="sbHP" placeholder="HP (e.g. 7 (2d6))">
+      <input type="number" id="sbInit" placeholder="Init Bonus">
+      <input type="text" id="sbSpeed" placeholder="Speed (e.g. 30 ft)">
+      <input type="text" id="sbTag" placeholder="Campaign Tag">
+      <textarea id="sbTraits" placeholder="Traits (one per line)"></textarea>
+      <textarea id="sbActions" placeholder="Actions (one per line)"></textarea>
+      <textarea id="sbBonusActions" placeholder="Bonus Actions (one per line)"></textarea>
+      <textarea id="sbReactions" placeholder="Reactions (one per line)"></textarea>
+      <textarea id="sbLegendaryActions" placeholder="Legendary Actions (one per line)"></textarea>
+      <textarea id="sbBulkJson" placeholder="Bulk import JSON (object or array)"></textarea>
+      <div class="statblockActions">
+        <button id="saveStatblock" type="button">Save Monster</button>
+        <button id="clearStatblockInputs" class="secondary" type="button">Clear Inputs</button>
+        <button id="exportLocalStatblocks" class="secondary" type="button">Export Local</button>
+        <button id="clearLocalStatblocks" class="danger" type="button">Clear Local</button>
+      </div>
+      <div id="statblockStatus" class="subtle">Saved monsters are stored locally in this browser.</div>
+    </div>
+    <div id="playerPanel" class="statblockGrid panelHidden">
+      <input type="text" id="pcName" placeholder="Name">
+      <input type="text" id="pcClass" placeholder="Class">
+      <input type="number" id="pcHP" placeholder="HP" min="1">
+      <input type="number" id="pcAC" placeholder="AC" min="0">
+      <input type="text" id="pcDefenses" placeholder="Defenses">
+      <input type="number" id="pcInit" placeholder="Initiative Bonus">
+      <input type="text" id="pcTag" placeholder="Campaign Tag">
+      <div class="statblockActions">
+        <button id="savePlayer" type="button">Save Player</button>
+        <button id="clearPlayerInputs" class="secondary" type="button">Clear Inputs</button>
+        <button id="exportLocalPlayers" class="secondary" type="button">Export Local</button>
+        <button id="clearLocalPlayers" class="danger" type="button">Clear Local</button>
+      </div>
+      <div id="playerStatus" class="subtle">Saved players are stored locally in this browser.</div>
+    </div>
+  </div>
+
+  <!-- Add Combatant Form -->
+  <div id="addCombatantForm" class="panel drawerPanel" data-drawer-panel="addCombatantForm">
+    <div class="addHeader">
+      <h3>Add Combatant</h3>
+
+      <button id="toggleAddPanel" class="miniBtn secondary" type="button">Close</button>
+    </div>
+
+    <div class="addGrid">
+      <div class="full">
+        <input type="text" id="combatantName" placeholder="Monster or Player Name" list="monsterList">
+
+        <div class="detectRow">
+          <div id="detectHint" class="detectHint">Detected: <span class="tag unknown">Unknown</span></div>
+
+          <div class="batchControls">
+            <span class="inlineCheck">Count</span>
+            <input type="number" id="combatantCount" min="1" value="1" title="Count">
+          </div>
+        </div>
+
+        <datalist id="monsterList"></datalist>
+      </div>
+
+      <select id="campaignFilter" title="Campaign Filter">
+        <option value="">All Campaigns</option>
+      </select>
+      <input type="number" id="combatantHP" placeholder="HP" min="1">
+      <input type="number" id="combatantAC" placeholder="AC" min="0">
+      <input type="number" id="combatantInit" placeholder="Initiative">
+
+      <button id="addCombatantBtn" class="addInline" type="button">Add</button>
+    </div>
+
+    <div class="importRow">
+      <div class="importLeft">
+        <label class="inlineCheck">
+          <input type="checkbox" id="rollInitOnImport" checked>
+          Auto-roll init
+        </label>
+        <label class="inlineCheck">
+          <input type="checkbox" id="batchSameInit" checked>
+          Same init
+        </label>
+      </div>
+      <button id="importPlayers" class="secondary">Import PCs</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Monster Details Panel -->
+<div id="monsterDetailsPanel" class="panel drawerPanel" data-drawer-panel="monsterDetailsPanel">
+  <div class="infoHeader">
+    <h3 id="monsterDetailsTitle">Monster Details</h3>
+    <button id="toggleMonsterDetails" class="secondary">Close</button>
+  </div>
+  <div id="monsterDetailsContent"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
