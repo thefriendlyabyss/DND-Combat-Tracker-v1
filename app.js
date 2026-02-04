@@ -505,45 +505,6 @@ function setPlayerStatus(message, isError) {
   el.style.color = isError ? "#ef5350" : "";
 }
 
-function coerceStatblockMap(raw, existingMap) {
-  const map = {};
-  let skipped = 0;
-  let overwritten = 0;
-
-  if (Array.isArray(raw)) {
-    raw.forEach(entry => {
-      if (!entry || typeof entry !== "object") {
-        skipped += 1;
-        return;
-      }
-      if (!entry.name) {
-        skipped += 1;
-        return;
-      }
-      const existingId = findStatblockIdByNameInsensitive(entry.name);
-      const id = existingId || makeStatblockIdFromName(entry.name, { ...existingMap, ...map });
-      if (existingMap[id] || map[id]) overwritten += 1;
-      map[id] = entry;
-    });
-    return { map, skipped, overwritten };
-  }
-
-  if (raw && typeof raw === "object") {
-    Object.entries(raw).forEach(([id, entry]) => {
-      if (!entry || typeof entry !== "object") {
-        skipped += 1;
-        return;
-      }
-      if (!entry.name) entry.name = id;
-      if (existingMap[id] || map[id]) overwritten += 1;
-      map[id] = entry;
-    });
-    return { map, skipped, overwritten };
-  }
-
-  return { map: {}, skipped: 0, overwritten: 0, error: "JSON must be an object or array." };
-}
-
 function refreshStatblocks() {
   statblocks = { ...baseStatblocks, ...localStatblocks };
   renderCampaignFilter();
@@ -734,7 +695,6 @@ function loadStatblockIntoForm(statblock, { useTemplate = false } = {}) {
   const bonusActionsField = document.getElementById("sbBonusActions");
   const reactionsField = document.getElementById("sbReactions");
   const legendaryActionsField = document.getElementById("sbLegendaryActions");
-  const bulkField = document.getElementById("sbBulkJson");
 
   if (nameField) {
     nameField.value = useTemplate ? `${statblock.name || "New Statblock"} Copy` : (statblock.name || "");
@@ -749,7 +709,6 @@ function loadStatblockIntoForm(statblock, { useTemplate = false } = {}) {
   if (bonusActionsField) bonusActionsField.value = Array.isArray(statblock.bonus_actions) ? statblock.bonus_actions.join("\n") : "";
   if (reactionsField) reactionsField.value = Array.isArray(statblock.reactions) ? statblock.reactions.join("\n") : "";
   if (legendaryActionsField) legendaryActionsField.value = Array.isArray(statblock.legendary_actions) ? statblock.legendary_actions.join("\n") : "";
-  if (bulkField) bulkField.value = "";
 }
 
 function renderCampaignFilter() {
@@ -869,34 +828,6 @@ document.addEventListener("click", (event) => {
 });
 
 document.getElementById("saveStatblock")?.addEventListener("click", () => {
-  const bulkInput = document.getElementById("sbBulkJson");
-  const bulkText = bulkInput?.value?.trim() || "";
-  if (bulkText) {
-    let parsed;
-    try {
-      parsed = JSON.parse(bulkText);
-    } catch (err) {
-      return setStatblockStatus("Invalid JSON: " + err.message, true);
-    }
-
-    const existing = { ...baseStatblocks, ...localStatblocks };
-    const { map, skipped, overwritten, error } = coerceStatblockMap(parsed, existing);
-    if (error) return setStatblockStatus(error, true);
-
-    const incomingCount = Object.keys(map).length;
-    if (!incomingCount) return setStatblockStatus("No valid statblocks found.", true);
-
-    localStatblocks = { ...localStatblocks, ...map };
-    saveLocalStatblocks(localStatblocks);
-    refreshStatblocks();
-
-    if (bulkInput) bulkInput.value = "";
-
-    const skipMsg = skipped ? ` Skipped ${skipped}.` : "";
-    const overMsg = overwritten ? ` Overwrote ${overwritten}.` : "";
-    return setStatblockStatus(`Imported ${incomingCount}.${overMsg}${skipMsg}`, false);
-  }
-
   const name = document.getElementById("sbName")?.value?.trim() || "";
   const acRaw = document.getElementById("sbAC")?.value?.trim() || "";
   const hp = document.getElementById("sbHP")?.value?.trim() || "";
@@ -980,8 +911,7 @@ document.getElementById("clearStatblockInputs")?.addEventListener("click", () =>
     "sbActions",
     "sbBonusActions",
     "sbReactions",
-    "sbLegendaryActions",
-    "sbBulkJson"
+    "sbLegendaryActions"
   ];
   ids.forEach(id => {
     const el = document.getElementById(id);
