@@ -549,6 +549,7 @@ function refreshStatblocks() {
   statblocks = { ...baseStatblocks, ...localStatblocks };
   renderCampaignFilter();
   populateNameDatalist();
+  renderStatblockCampaignFilter();
   renderStatblockTemplateList();
   render();
 }
@@ -675,6 +676,15 @@ function populateNameDatalist() {
 function renderStatblockTemplateList() {
   const select = document.getElementById("statblockTemplateSelect");
   if (!select) return;
+  const filter = String(document.getElementById("statblockCampaignFilter")?.value || "").trim();
+  const current = select.value;
+  const entries = Object.entries(statblocks || {})
+    .filter(([, statblock]) => campaignMatchesFilter(statblock, filter))
+    .map(([id, statblock]) => ({
+      id,
+      name: statblock?.name || id,
+      isLocal: !!localStatblocks[id]
+    }));
   const current = select.value;
   const entries = Object.entries(statblocks || {}).map(([id, statblock]) => ({
     id,
@@ -692,6 +702,28 @@ function renderStatblockTemplateList() {
 
   select.innerHTML = options.join("");
   if (current && entries.some(entry => entry.id === current)) {
+    select.value = current;
+  } else {
+    select.value = "";
+  }
+}
+
+function renderStatblockCampaignFilter() {
+  const select = document.getElementById("statblockCampaignFilter");
+  if (!select) return;
+
+  const tags = new Set();
+  Object.values(statblocks || {}).forEach(s => {
+    getCampaignTags(s).forEach(t => tags.add(t));
+  });
+
+  const current = select.value || "";
+  const options = ['<option value="">All Campaigns</option>']
+    .concat(Array.from(tags).sort((a, b) => a.localeCompare(b))
+      .map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`));
+
+  select.innerHTML = options.join("");
+  if (current && Array.from(tags).includes(current)) {
     select.value = current;
   } else {
     select.value = "";
@@ -788,6 +820,9 @@ document.getElementById("combatantCount")?.addEventListener("input", renderDetec
 document.getElementById("combatantCount")?.addEventListener("change", renderDetectHint);
 document.getElementById("campaignFilter")?.addEventListener("change", () => {
   populateNameDatalist();
+});
+document.getElementById("statblockCampaignFilter")?.addEventListener("change", () => {
+  renderStatblockTemplateList();
 });
 
 window.addEventListener("resize", () => {
