@@ -21,6 +21,7 @@ const savedCreatePanelMode = localStorage.getItem("createPanelMode");
 let createPanelMode = savedCreatePanelMode === "player" ? "player" : "statblock";
 let activeDrawerId = null;
 let monsterDetailsStatblock = null;
+let editingStatblockId = null;
 
 // ----- Load saved states -----
 const savedState = localStorage.getItem("combatState");
@@ -548,6 +549,7 @@ function refreshStatblocks() {
   statblocks = { ...baseStatblocks, ...localStatblocks };
   renderCampaignFilter();
   populateNameDatalist();
+  renderStatblockTemplateList();
   render();
 }
 
@@ -634,6 +636,70 @@ function populateNameDatalist() {
     .join("");
 
   renderDetectHint();
+}
+
+function renderStatblockTemplateList() {
+  const select = document.getElementById("statblockTemplateSelect");
+  if (!select) return;
+  const current = select.value;
+  const entries = Object.entries(statblocks || {}).map(([id, statblock]) => ({
+    id,
+    name: statblock?.name || id,
+    isLocal: !!localStatblocks[id]
+  }));
+
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+
+  const options = ['<option value="">Load existing statblock...</option>']
+    .concat(entries.map(entry => {
+      const label = `${entry.name}${entry.isLocal ? " • Local" : " • Base"}`;
+      return `<option value="${escapeHtml(entry.id)}">${escapeHtml(label)}</option>`;
+    }));
+
+  select.innerHTML = options.join("");
+  if (current && entries.some(entry => entry.id === current)) {
+    select.value = current;
+  } else {
+    select.value = "";
+  }
+}
+
+function setStatblockEditorMode({ editingId = null, message = "", isError = false } = {}) {
+  editingStatblockId = editingId;
+  const btn = document.getElementById("saveStatblock");
+  if (btn) btn.textContent = editingId ? "Update Monster" : "Save Monster";
+  if (message) setStatblockStatus(message, isError);
+}
+
+function loadStatblockIntoForm(statblock, { useTemplate = false } = {}) {
+  if (!statblock) return;
+  const nameField = document.getElementById("sbName");
+  const acField = document.getElementById("sbAC");
+  const hpField = document.getElementById("sbHP");
+  const initField = document.getElementById("sbInit");
+  const speedField = document.getElementById("sbSpeed");
+  const tagField = document.getElementById("sbTag");
+  const traitsField = document.getElementById("sbTraits");
+  const actionsField = document.getElementById("sbActions");
+  const bonusActionsField = document.getElementById("sbBonusActions");
+  const reactionsField = document.getElementById("sbReactions");
+  const legendaryActionsField = document.getElementById("sbLegendaryActions");
+  const bulkField = document.getElementById("sbBulkJson");
+
+  if (nameField) {
+    nameField.value = useTemplate ? `${statblock.name || "New Statblock"} Copy` : (statblock.name || "");
+  }
+  if (acField) acField.value = statblock.ac ?? "";
+  if (hpField) hpField.value = statblock.hp ?? "";
+  if (initField) initField.value = statblock.initiative_bonus ?? "";
+  if (speedField) speedField.value = statblock.speed ?? "";
+  if (tagField) tagField.value = statblock.campaign_tag ?? "";
+  if (traitsField) traitsField.value = Array.isArray(statblock.traits) ? statblock.traits.join("\n") : "";
+  if (actionsField) actionsField.value = Array.isArray(statblock.actions) ? statblock.actions.join("\n") : "";
+  if (bonusActionsField) bonusActionsField.value = Array.isArray(statblock.bonus_actions) ? statblock.bonus_actions.join("\n") : "";
+  if (reactionsField) reactionsField.value = Array.isArray(statblock.reactions) ? statblock.reactions.join("\n") : "";
+  if (legendaryActionsField) legendaryActionsField.value = Array.isArray(statblock.legendary_actions) ? statblock.legendary_actions.join("\n") : "";
+  if (bulkField) bulkField.value = "";
 }
 
 function renderCampaignFilter() {
@@ -832,7 +898,12 @@ document.getElementById("saveStatblock")?.addEventListener("click", () => {
   const existingMap = { ...baseStatblocks, ...localStatblocks };
   let id = existingId;
 
-  if (id) {
+  if (editingStatblockId) {
+    if (existingId && existingId !== editingStatblockId) {
+      return setStatblockStatus(`"${name}" already exists. Choose a new name.`, true);
+    }
+    id = editingStatblockId;
+  } else if (id) {
     const ok = confirm(`"${name}" already exists. Overwrite it?`);
     if (!ok) return;
   } else {
@@ -843,7 +914,11 @@ document.getElementById("saveStatblock")?.addEventListener("click", () => {
   saveLocalStatblocks(localStatblocks);
   refreshStatblocks();
 
-  setStatblockStatus(`Saved "${name}" locally.`, false);
+  if (editingStatblockId) {
+    setStatblockEditorMode({ editingId: id, message: `Updated "${name}".`, isError: false });
+  } else {
+    setStatblockEditorMode({ editingId: null, message: `Saved "${name}" locally.`, isError: false });
+  }
 });
 
 document.getElementById("clearStatblockInputs")?.addEventListener("click", () => {
@@ -865,7 +940,7 @@ document.getElementById("clearStatblockInputs")?.addEventListener("click", () =>
     const el = document.getElementById(id);
     if (el) el.value = "";
   });
-  setStatblockStatus("Cleared inputs.", false);
+  setStatblockEditorMode({ editingId: null, message: "Cleared inputs.", isError: false });
 });
 
 document.getElementById("exportLocalStatblocks")?.addEventListener("click", () => {
@@ -885,7 +960,30 @@ document.getElementById("clearLocalStatblocks")?.addEventListener("click", () =>
   localStatblocks = {};
   saveLocalStatblocks(localStatblocks);
   refreshStatblocks();
-  setStatblockStatus("Cleared local statblocks.", false);
+  setStatblockEditorMode({ editingId: null, message: "Cleared local statblocks.", isError: false });
+});
+
+document.getElementById("loadStatblockForEdit")?.addEventListener("click", () => {
+  const select = document.getElementById("statblockTemplateSelect");
+  const id = select?.value || "";
+  if (!id) return setStatblockStatus("Choose a statblock to edit.", true);
+  if (!localStatblocks[id]) {
+    return setStatblockStatus("Only local statblocks can be edited. Use Template to copy.", true);
+  }
+  const statblock = statblocks[id];
+  if (!statblock) return setStatblockStatus("Statblock not found.", true);
+  loadStatblockIntoForm(statblock, { useTemplate: false });
+  setStatblockEditorMode({ editingId: id, message: `Editing "${statblock.name}".`, isError: false });
+});
+
+document.getElementById("loadStatblockAsTemplate")?.addEventListener("click", () => {
+  const select = document.getElementById("statblockTemplateSelect");
+  const id = select?.value || "";
+  if (!id) return setStatblockStatus("Choose a statblock to template.", true);
+  const statblock = statblocks[id];
+  if (!statblock) return setStatblockStatus("Statblock not found.", true);
+  loadStatblockIntoForm(statblock, { useTemplate: true });
+  setStatblockEditorMode({ editingId: null, message: `Loaded template from "${statblock.name}".`, isError: false });
 });
 
 document.getElementById("savePlayer")?.addEventListener("click", () => {

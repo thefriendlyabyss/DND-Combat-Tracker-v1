@@ -80,6 +80,13 @@
       </div>
     </div>
     <div id="statblockPanel" class="statblockGrid">
+      <div class="statblockTemplateRow">
+        <select id="statblockTemplateSelect">
+          <option value="">Load existing statblock...</option>
+        </select>
+        <button id="loadStatblockForEdit" class="secondary" type="button">Edit</button>
+        <button id="loadStatblockAsTemplate" class="secondary" type="button">Template</button>
+      </div>
       <input type="text" id="sbName" placeholder="Name">
       <input type="number" id="sbAC" placeholder="AC" min="0">
       <input type="text" id="sbHP" placeholder="HP (e.g. 7 (2d6))">
