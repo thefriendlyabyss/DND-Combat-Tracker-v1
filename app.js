@@ -673,7 +673,7 @@ function renderStatblockCampaignFilter() {
   });
 
   const current = select.value || "";
-  const options = ['<option value="">All Campaigns</option>']
+  const options = ['<option value="">All Sources</option>']
     .concat(Array.from(tags).sort((a, b) => a.localeCompare(b))
       .map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`));
 
@@ -742,7 +742,7 @@ function renderCampaignFilter() {
   });
 
   const current = select.value || "";
-  const options = ['<option value="">All Campaigns</option>']
+  const options = ['<option value="">All Sources</option>']
     .concat(Array.from(tags).sort((a, b) => a.localeCompare(b))
       .map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`));
 
