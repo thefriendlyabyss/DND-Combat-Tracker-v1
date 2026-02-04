@@ -1458,8 +1458,36 @@ document.getElementById("prevTurn").addEventListener("click", () => {
 // ============================
 // Reset Combat
 // ============================
-document.getElementById("resetCombat").addEventListener("click", () => {
-  if (!confirm("Completely reset combat?")) return;
+const resetCombatButton = document.getElementById("resetCombat");
+let resetConfirmTimer = null;
+let resetTouchHandled = false;
+
+function clearResetConfirmation() {
+  if (!resetCombatButton) return;
+  resetCombatButton.dataset.confirmReset = "false";
+  resetCombatButton.textContent = "Reset Combat";
+}
+
+function promptResetConfirmation() {
+  if (!resetCombatButton) return;
+  resetCombatButton.dataset.confirmReset = "true";
+  resetCombatButton.textContent = "Tap again to reset";
+  if (resetConfirmTimer) clearTimeout(resetConfirmTimer);
+  resetConfirmTimer = setTimeout(() => {
+    clearResetConfirmation();
+    resetConfirmTimer = null;
+  }, 4000);
+}
+
+function handleResetCombat(event) {
+  if (event) event.preventDefault();
+  if (resetCombatButton.dataset.confirmReset !== "true") {
+    promptResetConfirmation();
+    return;
+  }
+  if (resetConfirmTimer) clearTimeout(resetConfirmTimer);
+  resetConfirmTimer = null;
+  clearResetConfirmation();
   state = { round: 1, turnIndex: 0, combatants: [] };
   selectedIndex = null;
   infoPanelVisible = true;
@@ -1469,7 +1497,24 @@ document.getElementById("resetCombat").addEventListener("click", () => {
   render();
   applyAddPanelState();
   renderDetectHint();
-});
+}
+
+if (resetCombatButton) {
+  resetCombatButton.addEventListener("touchend", (event) => {
+    resetTouchHandled = true;
+    handleResetCombat(event);
+    setTimeout(() => {
+      resetTouchHandled = false;
+    }, 400);
+  });
+  resetCombatButton.addEventListener("click", (event) => {
+    if (resetTouchHandled) {
+      resetTouchHandled = false;
+      return;
+    }
+    handleResetCombat(event);
+  });
+}
 
 // ============================
 // Render Combat List (Condensed + HP adjust inline)
