@@ -60,6 +60,60 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function sanitizeUrl(value) {
+  if (!value) return "";
+  const url = String(value).trim();
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.href;
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+function formatInlineStatblockText(value) {
+  let out = escapeHtml(value);
+  out = out.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+  out = out.replace(/_([^_]+)_/g, "<em>$1</em>");
+  return out;
+}
+
+function formatStatblockText(raw) {
+  const text = String(raw ?? "");
+  const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|<\s*(https?:\/\/[^>\s]+)\s*>/g;
+  let result = "";
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    const [full, label, url, angleUrl] = match;
+    result += formatInlineStatblockText(text.slice(lastIndex, match.index));
+    if (label && url) {
+      const safeUrl = sanitizeUrl(url);
+      if (safeUrl) {
+        result += `<a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">${formatInlineStatblockText(label)}</a>`;
+      } else {
+        result += formatInlineStatblockText(label);
+      }
+    } else if (angleUrl) {
+      const safeUrl = sanitizeUrl(angleUrl);
+      if (safeUrl) {
+        result += `<a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">${formatInlineStatblockText(angleUrl)}</a>`;
+      } else {
+        result += formatInlineStatblockText(angleUrl);
+      }
+    }
+    lastIndex = match.index + full.length;
+  }
+
+  result += formatInlineStatblockText(text.slice(lastIndex));
+  return result;
+}
+
 function formatStatblockEntry(raw) {
   const text = String(raw ?? "");
   const idx = text.indexOf(":");
@@ -71,15 +125,8 @@ function formatStatblockEntry(raw) {
   }
 
   const safeTitle = escapeHtml(title);
-  const formatBody = (val) => {
-    let out = escapeHtml(val);
-    out = out.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
-    out = out.replace(/_([^_]+)_/g, "<em>$1</em>");
-    return out;
-  };
-
-  if (!title) return formatBody(text);
-  return `<span class="sb-title">${safeTitle}:</span> ${formatBody(body)}`;
+  if (!title) return formatStatblockText(text);
+  return `<span class="sb-title">${safeTitle}:</span> ${formatStatblockText(body)}`;
 }
 
 function formatDefenses(value) {
