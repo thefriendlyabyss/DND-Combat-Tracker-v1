@@ -684,12 +684,6 @@ function renderStatblockTemplateList() {
       name: statblock?.name || id,
       isLocal: !!localStatblocks[id]
     }));
-  const current = select.value;
-  const entries = Object.entries(statblocks || {}).map(([id, statblock]) => ({
-    id,
-    name: statblock?.name || id,
-    isLocal: !!localStatblocks[id]
-  }));
 
   entries.sort((a, b) => a.name.localeCompare(b.name));
 
