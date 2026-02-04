@@ -128,7 +128,8 @@
 
     <div class="addGrid">
       <div class="full">
-        <input type="text" id="combatantName" placeholder="Monster or Player Name" list="monsterList">
+        <input type="text" id="combatantName" placeholder="Monster or Player Name" autocomplete="off">
+        <div id="combatantNameMenu" class="combatantMenu" role="listbox" aria-label="Combatant suggestions"></div>
 
         <div class="detectRow">
           <div id="detectHint" class="detectHint">Detected: <span class="tag unknown">Unknown</span></div>
@@ -139,7 +140,6 @@
           </div>
         </div>
 
-        <datalist id="monsterList"></datalist>
       </div>
 
       <select id="campaignFilter" title="Campaign Filter">

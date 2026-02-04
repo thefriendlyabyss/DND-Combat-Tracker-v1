@@ -529,14 +529,14 @@ function coerceStatblockMap(raw, existingMap) {
 function refreshStatblocks() {
   statblocks = { ...baseStatblocks, ...localStatblocks };
   renderCampaignFilter();
-  populateNameDatalist();
+  renderCombatantNameMenu();
   render();
 }
 
 function refreshCharacters() {
   characters = { ...baseCharacters, ...localCharacters };
   renderCampaignFilter();
-  populateNameDatalist();
+  renderCombatantNameMenu();
   render();
 }
 
@@ -584,13 +584,12 @@ function findCharacterIdByNameInsensitive(name) {
   return null;
 }
 
-// ----- Populate datalist -----
-function populateNameDatalist() {
-  const dl = document.getElementById("monsterList");
-  if (!dl) return;
-
-  const names = new Set();
+// ----- Populate combatant suggestions -----
+function getFilteredCombatantNames() {
   const filter = String(document.getElementById("campaignFilter")?.value || "").trim().toLowerCase();
+  const monsters = [];
+  const players = [];
+
   Object.values(statblocks || {}).forEach(s => {
     if (!s?.name) return;
     const tags = getCampaignTags(s).map(t => t.toLowerCase());
@@ -598,8 +597,9 @@ function populateNameDatalist() {
       const match = tags.some(t => t.includes(filter));
       if (!match) return;
     }
-    names.add(s.name);
+    monsters.push(s.name);
   });
+
   Object.values(characters || {}).forEach(c => {
     if (!c?.name) return;
     const tags = getCampaignTags(c).map(t => t.toLowerCase());
@@ -607,14 +607,49 @@ function populateNameDatalist() {
       const match = tags.some(t => t.includes(filter));
       if (!match) return;
     }
-    names.add(c.name);
+    players.push(c.name);
   });
 
-  dl.innerHTML = Array.from(names)
-    .sort((a, b) => a.localeCompare(b))
-    .map(n => `<option value="${n}"></option>`)
-    .join("");
+  monsters.sort((a, b) => a.localeCompare(b));
+  players.sort((a, b) => a.localeCompare(b));
 
+  return { monsters, players };
+}
+
+function buildCombatantMenuGroup(label, list, filterText) {
+  const normalized = String(filterText || "").trim().toLowerCase();
+  const filtered = normalized
+    ? list.filter(name => name.toLowerCase().includes(normalized))
+    : list;
+  if (!filtered.length) return "";
+  const items = filtered
+    .map(name => `
+      <button type="button" class="combatantMenuItem" data-name="${escapeHtml(name)}">
+        ${escapeHtml(name)}
+      </button>
+    `)
+    .join("");
+  return `
+    <div class="combatantMenuGroup">
+      <div class="combatantMenuLabel">${escapeHtml(label)}</div>
+      <div class="combatantMenuItems">${items}</div>
+    </div>
+  `;
+}
+
+function renderCombatantNameMenu() {
+  const menu = document.getElementById("combatantNameMenu");
+  if (!menu) return;
+
+  const inputValue = document.getElementById("combatantName")?.value || "";
+  const { monsters, players } = getFilteredCombatantNames();
+
+  const html = [
+    buildCombatantMenuGroup("Players", players, inputValue),
+    buildCombatantMenuGroup("Monsters", monsters, inputValue)
+  ].join("");
+
+  menu.innerHTML = html || `<div class="combatantMenuEmpty">No matches found.</div>`;
   renderDetectHint();
 }
 
@@ -651,11 +686,34 @@ function campaignMatchesFilter(entry, filter) {
 }
 
 // UI listeners (safe if elements exist)
-document.getElementById("combatantName")?.addEventListener("input", renderDetectHint);
+document.getElementById("combatantName")?.addEventListener("input", () => {
+  renderCombatantNameMenu();
+});
+document.getElementById("combatantName")?.addEventListener("focus", () => {
+  renderCombatantNameMenu();
+  const menu = document.getElementById("combatantNameMenu");
+  if (menu) menu.classList.add("open");
+});
+document.getElementById("combatantName")?.addEventListener("blur", () => {
+  const menu = document.getElementById("combatantNameMenu");
+  if (!menu) return;
+  window.setTimeout(() => menu.classList.remove("open"), 150);
+});
+document.getElementById("combatantNameMenu")?.addEventListener("click", (event) => {
+  const item = event.target.closest(".combatantMenuItem");
+  if (!item) return;
+  const name = item.dataset.name || "";
+  const input = document.getElementById("combatantName");
+  if (!input) return;
+  input.value = name;
+  renderDetectHint();
+  const menu = document.getElementById("combatantNameMenu");
+  if (menu) menu.classList.remove("open");
+});
 document.getElementById("combatantCount")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("change", renderDetectHint);
 document.getElementById("campaignFilter")?.addEventListener("change", () => {
-  populateNameDatalist();
+  renderCombatantNameMenu();
 });
 
 window.addEventListener("resize", () => {
@@ -1773,6 +1831,7 @@ applyInfoPanelState();
 applyCreateStatblockState();
 applyCreatePanelMode();
 renderDetectHint();
+renderCombatantNameMenu();
 
 
 
