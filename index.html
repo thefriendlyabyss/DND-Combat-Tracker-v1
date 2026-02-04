@@ -84,8 +84,8 @@
         <select id="statblockTemplateSelect">
           <option value="">Load existing statblock...</option>
         </select>
-        <select id="statblockCampaignFilter" title="Campaign Filter">
-          <option value="">All Campaigns</option>
+        <select id="statblockCampaignFilter" title="Source Filter">
+          <option value="">All Sources</option>
         </select>
         <button id="loadStatblockAsTemplate" class="secondary" type="button">Template</button>
       </div>
@@ -98,7 +98,7 @@
       <input type="text" id="sbAbilityScores" placeholder="Ability Scores (e.g. STR 18, DEX 14)">
       <input type="text" id="sbProficiencies" placeholder="Proficiencies (e.g. Perception +4)">
       <input type="text" id="sbSaves" placeholder="Saves (e.g. Dex +5, Wis +3)">
-      <input type="text" id="sbTag" placeholder="Campaign Tag">
+      <input type="text" id="sbTag" placeholder="Source Tag">
       <textarea id="sbTraits" placeholder="Traits (one per line)"></textarea>
       <textarea id="sbActions" placeholder="Actions (one per line)"></textarea>
       <textarea id="sbBonusActions" placeholder="Bonus Actions (one per line)"></textarea>
@@ -118,7 +118,7 @@
       <input type="number" id="pcAC" placeholder="AC" min="0">
       <input type="text" id="pcDefenses" placeholder="Defenses">
       <input type="number" id="pcInit" placeholder="Initiative Bonus">
-      <input type="text" id="pcTag" placeholder="Campaign Tag">
+      <input type="text" id="pcTag" placeholder="Source Tag">
       <div class="statblockActions">
         <button id="savePlayer" type="button">Save Player</button>
         <button id="clearPlayerInputs" class="secondary" type="button">Clear Inputs</button>
@@ -154,8 +154,8 @@
 
       </div>
 
-      <select id="campaignFilter" title="Campaign Filter">
-        <option value="">All Campaigns</option>
+      <select id="campaignFilter" title="Source Filter">
+        <option value="">All Sources</option>
       </select>
       <input type="number" id="combatantHP" placeholder="Monster HP" min="1">
       <input type="number" id="combatantAC" placeholder="AC" min="0">
