@@ -164,6 +164,20 @@
       <button id="addCombatantBtn" class="addInline" type="button">Add</button>
     </div>
 
+    <div class="importRow">
+      <div class="importLeft">
+        <label class="inlineCheck">
+          <input type="checkbox" id="rollInitOnImport" checked>
+          Auto-roll init
+        </label>
+        <label class="inlineCheck">
+          <input type="checkbox" id="batchSameInit" checked>
+          Same init
+        </label>
+      </div>
+      <button id="importPlayers" class="secondary">Import PCs</button>
+    </div>
+
     <div class="importJsonBlock">
       <div class="importJsonHeader">
         <h4>Import JSON</h4>
@@ -178,20 +192,6 @@
         <button id="importJsonBtn" type="button">Import JSON</button>
       </div>
       <div id="importJsonStatus" class="subtle"></div>
-    </div>
-
-    <div class="importRow">
-      <div class="importLeft">
-        <label class="inlineCheck">
-          <input type="checkbox" id="rollInitOnImport" checked>
-          Auto-roll init
-        </label>
-        <label class="inlineCheck">
-          <input type="checkbox" id="batchSameInit" checked>
-          Same init
-        </label>
-      </div>
-      <button id="importPlayers" class="secondary">Import PCs</button>
     </div>
   </div>
 
