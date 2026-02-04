@@ -471,6 +471,23 @@ strong{ color: var(--primary); }
 #createStatblock.collapsed{ padding: 8px 12px; }
 
 /* =========================
+   Statblock templates
+   ========================= */
+
+.statblockTemplateRow{
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  grid-column: 1 / -1;
+}
+
+.statblockTemplateRow select{
+  width: 100%;
+}
+
+/* =========================
    Turn controls
    ========================= */
 

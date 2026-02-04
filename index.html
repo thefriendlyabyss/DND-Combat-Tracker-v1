@@ -80,6 +80,16 @@
       </div>
     </div>
     <div id="statblockPanel" class="statblockGrid">
+      <div class="statblockTemplateRow">
+        <select id="statblockTemplateSelect">
+          <option value="">Load existing statblock...</option>
+        </select>
+        <select id="statblockCampaignFilter" title="Campaign Filter">
+          <option value="">All Campaigns</option>
+        </select>
+        <button id="loadStatblockForEdit" class="secondary" type="button">Edit</button>
+        <button id="loadStatblockAsTemplate" class="secondary" type="button">Template</button>
+      </div>
       <input type="text" id="sbName" placeholder="Name">
       <input type="number" id="sbAC" placeholder="AC" min="0">
       <input type="text" id="sbHP" placeholder="HP (e.g. 7 (2d6))">
@@ -103,7 +113,6 @@
     <div id="playerPanel" class="statblockGrid panelHidden">
       <input type="text" id="pcName" placeholder="Name">
       <input type="text" id="pcClass" placeholder="Class">
-      <input type="number" id="pcHP" placeholder="HP" min="1">
       <input type="number" id="pcAC" placeholder="AC" min="0">
       <input type="text" id="pcDefenses" placeholder="Defenses">
       <input type="number" id="pcInit" placeholder="Initiative Bonus">
@@ -130,6 +139,10 @@
       <div class="full">
         <input type="text" id="combatantName" placeholder="Monster or Player Name" autocomplete="off">
         <div id="combatantNameMenu" class="combatantMenu" role="listbox" aria-label="Combatant suggestions"></div>
+        <input type="text" id="combatantName" placeholder="Monster or Player Name" list="monsterList">
+        <select id="combatantNameSelect" title="Choose a Player or Monster">
+          <option value="">Choose from Players or Monsters</option>
+        </select>
 
         <div class="detectRow">
           <div id="detectHint" class="detectHint">Detected: <span class="tag unknown">Unknown</span></div>
@@ -145,7 +158,7 @@
       <select id="campaignFilter" title="Campaign Filter">
         <option value="">All Campaigns</option>
       </select>
-      <input type="number" id="combatantHP" placeholder="HP" min="1">
+      <input type="number" id="combatantHP" placeholder="Monster HP" min="1">
       <input type="number" id="combatantAC" placeholder="AC" min="0">
       <input type="number" id="combatantInit" placeholder="Initiative">
 
