@@ -1100,6 +1100,17 @@ li.combatant.active .turnTag{
   font-style: italic;
 }
 
+#panelContent .statblockEntry a,
+#monsterDetailsPanel .statblockEntry a{
+  color: #8fd0ff;
+  text-decoration: underline;
+}
+
+#panelContent .statblockEntry a:hover,
+#monsterDetailsPanel .statblockEntry a:hover{
+  color: #b3e2ff;
+}
+
 #panelContent .statblockColumns{
   column-count: 2;
   column-gap: 16px;
