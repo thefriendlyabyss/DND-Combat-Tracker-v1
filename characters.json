@@ -2,7 +2,6 @@
   "celeste": {
     "name": "Celeste",
     "class": "Cleric / Wizard",
-    "hp": 93,
     "ac": 18,
     "initiative_bonus": 2,
     "campaign_tag": "ToA"
@@ -10,7 +9,6 @@
   "g_oober": {
     "name": "G'Oober",
     "class": "Warlock",
-    "hp": 76,
     "ac": 10,
     "initiative_bonus": 0,
     "defenses": "Fire , Poison",
@@ -19,7 +17,6 @@
   "groot": {
     "name": "Groot",
     "class": "Druid",
-    "hp": 109,
     "ac": 17,
     "initiative_bonus": 7,
     "defenses": "Necrotic",
@@ -28,7 +25,6 @@
   "mouse": {
     "name": "Mouse",
     "class": "Monk",
-    "hp": 80,
     "ac": 19,
     "initiative_bonus": 4,
     "campaign_tag": "ToA"
@@ -36,7 +32,6 @@
   "nathaniel": {
     "name": "Nathaniel",
     "class": "Ranger",
-    "hp": 82,
     "ac": 17,
     "initiative_bonus": 9,
     "campaign_tag": "ToA"
@@ -44,7 +39,6 @@
   "shamash": {
     "name": "Shamash",
     "class": "Fighter",
-    "hp": 114,
     "ac": 19,
     "initiative_bonus": 3,
     "defenses": "Fire",
@@ -53,7 +47,6 @@
   "tak": {
     "name": "Tak",
     "class": "Barbarian",
-    "hp": 123,
     "ac": 17,
     "initiative_bonus": 2,
     "defenses": "Poison",
@@ -62,7 +55,6 @@
   "uthal": {
     "name": "Uthal",
     "class": "Barbarian",
-    "hp": 104,
     "ac": 20,
     "initiative_bonus": 4,
     "defenses": "Cold, Poison",
@@ -71,7 +63,6 @@
   "astra": {
     "name": "Astra",
     "class": "Rogue",
-    "hp": 117,
     "ac": 17,
     "initiative_bonus": 8,
     "defenses": "Poison",
@@ -80,7 +71,6 @@
   "azaka": {
     "name": "Azaka",
     "class": "-",
-    "hp": 65,
     "ac": 16,
     "initiative_bonus": 3,
     "campaign_tag": "ToA"
