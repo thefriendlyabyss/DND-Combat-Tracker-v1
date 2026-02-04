@@ -605,12 +605,11 @@ function findCharacterIdByNameInsensitive(name) {
 }
 
 // ----- Populate datalist -----
-function populateNameDatalist() {
-  const dl = document.getElementById("monsterList");
-  if (!dl) return;
-
-  const names = new Set();
+function getFilteredCombatantNames() {
   const filter = String(document.getElementById("campaignFilter")?.value || "").trim().toLowerCase();
+  const monsters = [];
+  const players = [];
+
   Object.values(statblocks || {}).forEach(s => {
     if (!s?.name) return;
     const tags = getCampaignTags(s).map(t => t.toLowerCase());
@@ -618,8 +617,9 @@ function populateNameDatalist() {
       const match = tags.some(t => t.includes(filter));
       if (!match) return;
     }
-    names.add(s.name);
+    monsters.push(s.name);
   });
+
   Object.values(characters || {}).forEach(c => {
     if (!c?.name) return;
     const tags = getCampaignTags(c).map(t => t.toLowerCase());
@@ -627,13 +627,47 @@ function populateNameDatalist() {
       const match = tags.some(t => t.includes(filter));
       if (!match) return;
     }
-    names.add(c.name);
+    players.push(c.name);
   });
 
-  dl.innerHTML = Array.from(names)
-    .sort((a, b) => a.localeCompare(b))
-    .map(n => `<option value="${n}"></option>`)
-    .join("");
+  monsters.sort((a, b) => a.localeCompare(b));
+  players.sort((a, b) => a.localeCompare(b));
+
+  return { monsters, players };
+}
+
+function populateNameDatalist() {
+  const dl = document.getElementById("monsterList");
+  const select = document.getElementById("combatantNameSelect");
+  if (!dl && !select) return;
+
+  const { monsters, players } = getFilteredCombatantNames();
+  const names = Array.from(new Set([...players, ...monsters]));
+
+  if (dl) {
+    dl.innerHTML = names
+      .sort((a, b) => a.localeCompare(b))
+      .map(n => `<option value="${escapeHtml(n)}"></option>`)
+      .join("");
+  }
+
+  if (select) {
+    const buildGroup = (label, list) => {
+      if (!list.length) return "";
+      const options = list
+        .map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`)
+        .join("");
+      return `<optgroup label="${escapeHtml(label)}">${options}</optgroup>`;
+    };
+
+    const grouped = [
+      `<option value="">Choose from Players or Monsters</option>`,
+      buildGroup("Players", players),
+      buildGroup("Monsters", monsters)
+    ].join("");
+
+    select.innerHTML = grouped;
+  }
 
   renderDetectHint();
 }
@@ -735,7 +769,21 @@ function campaignMatchesFilter(entry, filter) {
 }
 
 // UI listeners (safe if elements exist)
-document.getElementById("combatantName")?.addEventListener("input", renderDetectHint);
+document.getElementById("combatantName")?.addEventListener("input", () => {
+  const select = document.getElementById("combatantNameSelect");
+  if (select && select.value && select.value !== document.getElementById("combatantName").value) {
+    select.value = "";
+  }
+  renderDetectHint();
+});
+document.getElementById("combatantNameSelect")?.addEventListener("change", (event) => {
+  const value = event.target.value;
+  if (!value) return;
+  const input = document.getElementById("combatantName");
+  if (!input) return;
+  input.value = value;
+  renderDetectHint();
+});
 document.getElementById("combatantCount")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("change", renderDetectHint);
 document.getElementById("campaignFilter")?.addEventListener("change", () => {
