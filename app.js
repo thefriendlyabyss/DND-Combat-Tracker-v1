@@ -953,16 +953,8 @@ document.getElementById("saveStatblock")?.addEventListener("click", () => {
   const existingMap = { ...baseStatblocks, ...localStatblocks };
   let id = existingId;
 
-  if (editingStatblockId) {
-    if (existingId && existingId !== editingStatblockId) {
-      return setStatblockStatus(`"${name}" already exists. Choose a new name.`, true);
-    }
-    id = editingStatblockId;
-  } else if (id) {
-    const ok = confirm(`"${name}" already exists. Overwrite it?`);
-    if (!ok) return;
-  } else {
-    id = makeStatblockIdFromName(name, existingMap);
+  if (!id) {
+    id = editingStatblockId || makeStatblockIdFromName(name, existingMap);
   }
 
   localStatblocks = { ...localStatblocks, [id]: statblock };
@@ -1016,19 +1008,6 @@ document.getElementById("clearLocalStatblocks")?.addEventListener("click", () =>
   saveLocalStatblocks(localStatblocks);
   refreshStatblocks();
   setStatblockEditorMode({ editingId: null, message: "Cleared local statblocks.", isError: false });
-});
-
-document.getElementById("loadStatblockForEdit")?.addEventListener("click", () => {
-  const select = document.getElementById("statblockTemplateSelect");
-  const id = select?.value || "";
-  if (!id) return setStatblockStatus("Choose a statblock to edit.", true);
-  if (!localStatblocks[id]) {
-    return setStatblockStatus("Only local statblocks can be edited. Use Template to copy.", true);
-  }
-  const statblock = statblocks[id];
-  if (!statblock) return setStatblockStatus("Statblock not found.", true);
-  loadStatblockIntoForm(statblock, { useTemplate: false });
-  setStatblockEditorMode({ editingId: id, message: `Editing "${statblock.name}".`, isError: false });
 });
 
 document.getElementById("loadStatblockAsTemplate")?.addEventListener("click", () => {
