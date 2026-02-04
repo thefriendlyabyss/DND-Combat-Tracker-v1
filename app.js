@@ -844,6 +844,10 @@ document.getElementById("toggleCreateStatblock")?.addEventListener("click", () =
   setActiveDrawer(null);
 });
 
+document.getElementById("toggleHelpfulTips")?.addEventListener("click", () => {
+  setActiveDrawer(null);
+});
+
 document.getElementById("toggleMonsterDetails")?.addEventListener("click", () => {
   setActiveDrawer(null);
 });
@@ -875,6 +879,12 @@ document.addEventListener("click", (event) => {
   const quickCreate = event.target.closest("#quickCreatePanel");
   if (quickCreate) {
     setActiveDrawer(activeDrawerId === "createStatblock" ? null : "createStatblock");
+    return;
+  }
+
+  const helpfulTips = event.target.closest("#helpfulTipsPanelBtn");
+  if (helpfulTips) {
+    setActiveDrawer(activeDrawerId === "helpfulTipsPanel" ? null : "helpfulTipsPanel");
     return;
   }
 
