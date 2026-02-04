@@ -323,27 +323,8 @@ strong{ color: var(--primary); }
   font-size: 0.82em;
 }
 
-.tipsPanelBody{
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.tipsSection{
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-}
-
-.tipsSection h4{
-  margin: 0 0 8px 0;
-  font-size: 0.95rem;
-  color: var(--primary);
-}
-
 .tipsList{
-  margin: 0;
+  margin: 12px 0 0;
   padding-left: 18px;
   display: grid;
   gap: 6px;
