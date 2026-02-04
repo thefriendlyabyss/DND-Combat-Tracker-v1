@@ -1245,8 +1245,11 @@ li.combatant.active .turnTag{
 /* More separation under the Add button */
 .importRow{
   margin-top: 14px;
+  margin-bottom: 14px;
   padding-top: 12px;
+  padding-bottom: 12px;
   border-top: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
 
   display: flex;
   align-items: center;
