@@ -164,6 +164,22 @@
       <button id="addCombatantBtn" class="addInline" type="button">Add</button>
     </div>
 
+    <div class="importJsonBlock">
+      <div class="importJsonHeader">
+        <h4>Import JSON</h4>
+        <span class="subtle">Restore exported local storage or saved data.</span>
+      </div>
+      <textarea id="importJsonText" placeholder="Paste exported JSON here."></textarea>
+      <div class="importJsonFileRow">
+        <input type="file" id="importJsonFile" accept=".json,application/json">
+        <button id="clearImportJson" class="secondary miniBtn" type="button">Clear</button>
+      </div>
+      <div class="importJsonActions">
+        <button id="importJsonBtn" type="button">Import JSON</button>
+      </div>
+      <div id="importJsonStatus" class="subtle"></div>
+    </div>
+
     <div class="importRow">
       <div class="importLeft">
         <label class="inlineCheck">
