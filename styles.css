@@ -1277,10 +1277,10 @@ li.combatant.active .turnTag{
 
 .importJsonBlock{
   margin-top: 16px;
-  padding: 14px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 10px;
