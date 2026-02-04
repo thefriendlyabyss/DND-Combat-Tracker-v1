@@ -1221,6 +1221,138 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
 });
 
 // ============================
+// Import JSON (local storage restore)
+// ============================
+function setImportJsonStatus(message, isError) {
+  const el = document.getElementById("importJsonStatus");
+  if (!el) return;
+  el.textContent = message;
+  el.style.color = isError ? "#ef5350" : "";
+}
+
+function coerceImportObject(raw) {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : null;
+}
+
+function normalizeImportPayload(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  if (Array.isArray(raw)) {
+    const mapped = {};
+    raw.forEach(entry => {
+      if (entry && typeof entry === "object" && "key" in entry) {
+        mapped[entry.key] = entry.value;
+      }
+    });
+    return mapped;
+  }
+  if (raw.localStorage && typeof raw.localStorage === "object" && !Array.isArray(raw.localStorage)) {
+    return raw.localStorage;
+  }
+  return raw;
+}
+
+function applyImportedData(raw) {
+  const payload = normalizeImportPayload(raw);
+  if (!payload) return { ok: false, message: "No data found in JSON payload." };
+
+  const statblocksData = coerceImportObject(payload[LOCAL_STATBLOCKS_KEY])
+    || coerceImportObject(payload.statblocksLocal)
+    || coerceImportObject(payload.localStatblocks);
+  const charactersData = coerceImportObject(payload[LOCAL_CHARACTERS_KEY])
+    || coerceImportObject(payload.charactersLocal)
+    || coerceImportObject(payload.localCharacters);
+  const combatStateData = coerceImportObject(payload.combatState);
+  const combatSavesData = coerceImportObject(payload[COMBAT_SAVES_KEY])
+    || coerceImportObject(payload.combatSaves);
+
+  const imported = [];
+
+  if (statblocksData) {
+    localStatblocks = statblocksData;
+    saveLocalStatblocks(localStatblocks);
+    refreshStatblocks();
+    imported.push("statblocks");
+  }
+
+  if (charactersData) {
+    localCharacters = charactersData;
+    saveLocalCharacters(localCharacters);
+    refreshCharacters();
+    imported.push("players");
+  }
+
+  if (combatSavesData) {
+    combatSaves = combatSavesData;
+    saveCombatSaves(combatSaves);
+    renderCombatSaveList();
+    imported.push("combat saves");
+  }
+
+  if (combatStateData && Array.isArray(combatStateData.combatants)) {
+    state = {
+      round: parseInt(combatStateData.round, 10) || 1,
+      turnIndex: parseInt(combatStateData.turnIndex, 10) || 0,
+      combatants: combatStateData.combatants
+    };
+    saveState();
+    render();
+    imported.push("combat state");
+  }
+
+  if (!imported.length) {
+    return { ok: false, message: "No compatible local storage data found." };
+  }
+
+  return { ok: true, message: `Imported ${imported.join(", ")}.` };
+}
+
+document.getElementById("importJsonBtn")?.addEventListener("click", async () => {
+  const fileInput = document.getElementById("importJsonFile");
+  const textInput = document.getElementById("importJsonText");
+  if (!textInput) return;
+  const file = fileInput?.files?.[0] || null;
+  const text = file ? await file.text() : textInput.value.trim();
+
+  if (!text) return setImportJsonStatus("Paste JSON or choose a file to import.", true);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return setImportJsonStatus("Invalid JSON. Check the file or pasted text.", true);
+  }
+
+  const result = applyImportedData(parsed);
+  setImportJsonStatus(result.message, !result.ok);
+});
+
+document.getElementById("importJsonFile")?.addEventListener("change", async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const textInput = document.getElementById("importJsonText");
+  if (!textInput) return;
+  textInput.value = await file.text();
+  setImportJsonStatus(`Loaded ${file.name}.`, false);
+});
+
+document.getElementById("clearImportJson")?.addEventListener("click", () => {
+  const textInput = document.getElementById("importJsonText");
+  const fileInput = document.getElementById("importJsonFile");
+  if (textInput) textInput.value = "";
+  if (fileInput) fileInput.value = "";
+  setImportJsonStatus("Cleared import input.", false);
+});
+
+// ============================
 // Import PCs
 // ============================
 function addPlayerFromCharacter(characterId, characterData, { rollInit } = { rollInit: false }) {
