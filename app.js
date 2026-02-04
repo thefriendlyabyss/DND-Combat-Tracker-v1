@@ -92,6 +92,16 @@ function formatDefenses(value) {
   return text ? text : "-";
 }
 
+function formatStatblockValue(value) {
+  if (Array.isArray(value)) {
+    const cleaned = value.map(v => String(v || "").trim()).filter(Boolean);
+    return cleaned.length ? cleaned.join(", ") : "";
+  }
+  if (value === null || value === undefined) return "";
+  const text = String(value).trim();
+  return text ? text : "";
+}
+
 function normalizeTag(value) {
   const v = String(value || "").trim();
   return v ? v : "";
@@ -689,6 +699,10 @@ function loadStatblockIntoForm(statblock, { useTemplate = false } = {}) {
   const hpField = document.getElementById("sbHP");
   const initField = document.getElementById("sbInit");
   const speedField = document.getElementById("sbSpeed");
+  const defensesField = document.getElementById("sbDefenses");
+  const abilityScoresField = document.getElementById("sbAbilityScores");
+  const proficienciesField = document.getElementById("sbProficiencies");
+  const savesField = document.getElementById("sbSaves");
   const tagField = document.getElementById("sbTag");
   const traitsField = document.getElementById("sbTraits");
   const actionsField = document.getElementById("sbActions");
@@ -703,6 +717,10 @@ function loadStatblockIntoForm(statblock, { useTemplate = false } = {}) {
   if (hpField) hpField.value = statblock.hp ?? "";
   if (initField) initField.value = statblock.initiative_bonus ?? "";
   if (speedField) speedField.value = statblock.speed ?? "";
+  if (defensesField) defensesField.value = formatStatblockValue(statblock.defenses);
+  if (abilityScoresField) abilityScoresField.value = formatStatblockValue(statblock.ability_scores);
+  if (proficienciesField) proficienciesField.value = formatStatblockValue(statblock.proficiencies);
+  if (savesField) savesField.value = formatStatblockValue(statblock.saves);
   if (tagField) tagField.value = statblock.campaign_tag ?? "";
   if (traitsField) traitsField.value = Array.isArray(statblock.traits) ? statblock.traits.join("\n") : "";
   if (actionsField) actionsField.value = Array.isArray(statblock.actions) ? statblock.actions.join("\n") : "";
@@ -833,6 +851,10 @@ document.getElementById("saveStatblock")?.addEventListener("click", () => {
   const hp = document.getElementById("sbHP")?.value?.trim() || "";
   const initRaw = document.getElementById("sbInit")?.value?.trim() || "";
   const speed = document.getElementById("sbSpeed")?.value?.trim() || "";
+  const defenses = document.getElementById("sbDefenses")?.value?.trim() || "";
+  const abilityScores = document.getElementById("sbAbilityScores")?.value?.trim() || "";
+  const proficiencies = document.getElementById("sbProficiencies")?.value?.trim() || "";
+  const saves = document.getElementById("sbSaves")?.value?.trim() || "";
   const tag = document.getElementById("sbTag")?.value?.trim() || "";
   const traitsRaw = document.getElementById("sbTraits")?.value || "";
   const actionsRaw = document.getElementById("sbActions")?.value || "";
@@ -873,6 +895,10 @@ document.getElementById("saveStatblock")?.addEventListener("click", () => {
   const statblock = { name, ac, hp };
   if (speed) statblock.speed = speed;
   if (initRaw) statblock.initiative_bonus = initiative_bonus;
+  if (defenses) statblock.defenses = defenses;
+  if (abilityScores) statblock.ability_scores = abilityScores;
+  if (proficiencies) statblock.proficiencies = proficiencies;
+  if (saves) statblock.saves = saves;
   if (tag) statblock.campaign_tag = tag;
   if (traits.length) statblock.traits = traits;
   if (actions.length) statblock.actions = actions;
@@ -906,6 +932,10 @@ document.getElementById("clearStatblockInputs")?.addEventListener("click", () =>
     "sbHP",
     "sbInit",
     "sbSpeed",
+    "sbDefenses",
+    "sbAbilityScores",
+    "sbProficiencies",
+    "sbSaves",
     "sbTag",
     "sbTraits",
     "sbActions",
@@ -1765,6 +1795,25 @@ function renderInfoPanel() {
     const b = c.statblock_id ? statblocks[c.statblock_id] : null;
 
     if (b) {
+      const defenses = formatDefenses(
+        b.defenses ?? b.resistances ?? b.damage_resistances ?? b.resistance
+      );
+      const abilityScores = formatStatblockValue(b.ability_scores ?? b.abilityScores ?? b.abilities);
+      const saves = formatStatblockValue(b.saves ?? b.saving_throws ?? b.savingThrows);
+      const proficiencies = formatStatblockValue(b.proficiencies ?? b.skills ?? b.skill_proficiencies);
+      const defensesHtml =
+        defenses && defenses !== "-"
+          ? `<div class="infoStat"><span class="infoLabel infoLabelPlain">Defenses</span> — ${escapeHtml(defenses)}</div>`
+          : "";
+      const abilityScoresHtml = abilityScores
+        ? `<div class="infoStat"><span class="infoLabel infoLabelPlain">Ability Scores</span> — ${escapeHtml(abilityScores)}</div>`
+        : "";
+      const savesHtml = saves
+        ? `<div class="infoStat"><span class="infoLabel infoLabelPlain">Saves</span> — ${escapeHtml(saves)}</div>`
+        : "";
+      const proficienciesHtml = proficiencies
+        ? `<div class="infoStat"><span class="infoLabel infoLabelPlain">Proficiencies</span> — ${escapeHtml(proficiencies)}</div>`
+        : "";
       leftHtml = `
         <div class="infoStack">
           <div class="infoHead">
@@ -1782,6 +1831,10 @@ function renderInfoPanel() {
               <div class="infoStat"><span class="infoLabel infoLabelPlain">HP</span> — ${escapeHtml(b.hp)}</div>
               <div class="infoStat"><span class="infoLabel infoLabelPlain">Speed</span> — ${escapeHtml(b.speed || "-")}</div>
               <div class="infoStat"><span class="infoLabel infoLabelPlain">Init Bonus</span> — ${escapeHtml(b.initiative_bonus ?? "-")}</div>
+              ${abilityScoresHtml}
+              ${savesHtml}
+              ${defensesHtml}
+              ${proficienciesHtml}
             </div>
             ${rightHtml}
           </div>
