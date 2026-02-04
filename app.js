@@ -341,7 +341,7 @@ function detectTypeAndSourceIds(name, count) {
 
 function renderDetectHint() {
   const hint = document.getElementById("detectHint");
-  const name = document.getElementById("combatantName")?.value?.trim() || "";
+  const name = document.getElementById("combatantNameSelect")?.value?.trim() || "";
   const count = parseInt(document.getElementById("combatantCount")?.value ?? "1", 10) || 1;
   const hpInput = document.getElementById("combatantHP");
   if (!hint) return;
@@ -637,19 +637,10 @@ function getFilteredCombatantNames() {
 }
 
 function populateNameDatalist() {
-  const dl = document.getElementById("monsterList");
   const select = document.getElementById("combatantNameSelect");
-  if (!dl && !select) return;
+  if (!select) return;
 
   const { monsters, players } = getFilteredCombatantNames();
-  const names = Array.from(new Set([...players, ...monsters]));
-
-  if (dl) {
-    dl.innerHTML = names
-      .sort((a, b) => a.localeCompare(b))
-      .map(n => `<option value="${escapeHtml(n)}"></option>`)
-      .join("");
-  }
 
   if (select) {
     const buildGroup = (label, list) => {
@@ -794,19 +785,7 @@ function campaignMatchesFilter(entry, filter) {
 }
 
 // UI listeners (safe if elements exist)
-document.getElementById("combatantName")?.addEventListener("input", () => {
-  const select = document.getElementById("combatantNameSelect");
-  if (select && select.value && select.value !== document.getElementById("combatantName").value) {
-    select.value = "";
-  }
-  renderDetectHint();
-});
 document.getElementById("combatantNameSelect")?.addEventListener("change", (event) => {
-  const value = event.target.value;
-  if (!value) return;
-  const input = document.getElementById("combatantName");
-  if (!input) return;
-  input.value = value;
   renderDetectHint();
 });
 document.getElementById("combatantCount")?.addEventListener("input", renderDetectHint);
@@ -1194,7 +1173,7 @@ normalizeLoadedState();
 // Add Combatant (Batch for Monsters)
 // ============================
 document.getElementById("addCombatantBtn").addEventListener("click", () => {
-  const baseName = document.getElementById("combatantName").value.trim();
+  const baseName = document.getElementById("combatantNameSelect").value.trim();
   let hpInput = document.getElementById("combatantHP").value.trim();
   let acInput = document.getElementById("combatantAC").value.trim();
 
@@ -1294,7 +1273,7 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   render();
 
   // Clear form
-  document.getElementById("combatantName").value = "";
+  document.getElementById("combatantNameSelect").value = "";
   document.getElementById("combatantHP").value = "";
   document.getElementById("combatantAC").value = "";
   document.getElementById("combatantInit").value = "";
