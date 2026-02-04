@@ -213,18 +213,25 @@ function normalizeLoadedState() {
 
   state.combatants.forEach(c => {
     if (!Array.isArray(c.conditions)) c.conditions = [];
-    c.current_hp = parseInt(c.current_hp, 10);
-    c.max_hp = parseInt(c.max_hp, 10);
+    if (!c.type) c.type = "monster";
+    if (c.type === "monster") {
+      c.current_hp = parseInt(c.current_hp, 10);
+      c.max_hp = parseInt(c.max_hp, 10);
+    } else {
+      delete c.current_hp;
+      delete c.max_hp;
+    }
     c.ac = parseInt(c.ac, 10);
     c.initiative = parseInt(c.initiative, 10);
     c.is_npc = !!c.is_npc;
     c.just_added = false;
 
-    if (Number.isNaN(c.current_hp)) c.current_hp = 0;
-    if (Number.isNaN(c.max_hp)) c.max_hp = c.current_hp;
+    if (c.type === "monster") {
+      if (Number.isNaN(c.current_hp)) c.current_hp = 0;
+      if (Number.isNaN(c.max_hp)) c.max_hp = c.current_hp;
+    }
     if (Number.isNaN(c.ac)) c.ac = 10;
     if (Number.isNaN(c.initiative)) c.initiative = 0;
-    if (!c.type) c.type = "monster";
   });
 
   if (!state.round || state.round < 1) state.round = 1;
@@ -337,10 +344,15 @@ function renderDetectHint() {
   const hint = document.getElementById("detectHint");
   const name = document.getElementById("combatantName")?.value?.trim() || "";
   const count = parseInt(document.getElementById("combatantCount")?.value ?? "1", 10) || 1;
+  const hpInput = document.getElementById("combatantHP");
   if (!hint) return;
 
   if (!name) {
     hint.innerHTML = 'Detected: <span class="tag unknown">—</span>';
+    if (hpInput) {
+      hpInput.disabled = false;
+      hpInput.placeholder = "Monster HP";
+    }
     return;
   }
 
@@ -358,6 +370,12 @@ function renderDetectHint() {
   }
 
   hint.innerHTML = `Detected: <span class="tag ${cls}">${label}</span>`;
+  if (hpInput) {
+    const isPlayer = cls === "player";
+    hpInput.disabled = isPlayer;
+    hpInput.placeholder = isPlayer ? "Monster HP" : "Monster HP";
+    if (isPlayer) hpInput.value = "";
+  }
 }
 
 function applyAddPanelState() {
@@ -588,12 +606,11 @@ function findCharacterIdByNameInsensitive(name) {
 }
 
 // ----- Populate datalist -----
-function populateNameDatalist() {
-  const dl = document.getElementById("monsterList");
-  if (!dl) return;
-
-  const names = new Set();
+function getFilteredCombatantNames() {
   const filter = String(document.getElementById("campaignFilter")?.value || "").trim().toLowerCase();
+  const monsters = [];
+  const players = [];
+
   Object.values(statblocks || {}).forEach(s => {
     if (!s?.name) return;
     const tags = getCampaignTags(s).map(t => t.toLowerCase());
@@ -601,8 +618,9 @@ function populateNameDatalist() {
       const match = tags.some(t => t.includes(filter));
       if (!match) return;
     }
-    names.add(s.name);
+    monsters.push(s.name);
   });
+
   Object.values(characters || {}).forEach(c => {
     if (!c?.name) return;
     const tags = getCampaignTags(c).map(t => t.toLowerCase());
@@ -610,13 +628,47 @@ function populateNameDatalist() {
       const match = tags.some(t => t.includes(filter));
       if (!match) return;
     }
-    names.add(c.name);
+    players.push(c.name);
   });
 
-  dl.innerHTML = Array.from(names)
-    .sort((a, b) => a.localeCompare(b))
-    .map(n => `<option value="${n}"></option>`)
-    .join("");
+  monsters.sort((a, b) => a.localeCompare(b));
+  players.sort((a, b) => a.localeCompare(b));
+
+  return { monsters, players };
+}
+
+function populateNameDatalist() {
+  const dl = document.getElementById("monsterList");
+  const select = document.getElementById("combatantNameSelect");
+  if (!dl && !select) return;
+
+  const { monsters, players } = getFilteredCombatantNames();
+  const names = Array.from(new Set([...players, ...monsters]));
+
+  if (dl) {
+    dl.innerHTML = names
+      .sort((a, b) => a.localeCompare(b))
+      .map(n => `<option value="${escapeHtml(n)}"></option>`)
+      .join("");
+  }
+
+  if (select) {
+    const buildGroup = (label, list) => {
+      if (!list.length) return "";
+      const options = list
+        .map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`)
+        .join("");
+      return `<optgroup label="${escapeHtml(label)}">${options}</optgroup>`;
+    };
+
+    const grouped = [
+      `<option value="">Choose from Players or Monsters</option>`,
+      buildGroup("Players", players),
+      buildGroup("Monsters", monsters)
+    ].join("");
+
+    select.innerHTML = grouped;
+  }
 
   renderDetectHint();
 }
@@ -633,6 +685,12 @@ function renderStatblockTemplateList() {
       name: statblock?.name || id,
       isLocal: !!localStatblocks[id]
     }));
+  const current = select.value;
+  const entries = Object.entries(statblocks || {}).map(([id, statblock]) => ({
+    id,
+    name: statblock?.name || id,
+    isLocal: !!localStatblocks[id]
+  }));
 
   entries.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -743,7 +801,21 @@ function campaignMatchesFilter(entry, filter) {
 }
 
 // UI listeners (safe if elements exist)
-document.getElementById("combatantName")?.addEventListener("input", renderDetectHint);
+document.getElementById("combatantName")?.addEventListener("input", () => {
+  const select = document.getElementById("combatantNameSelect");
+  if (select && select.value && select.value !== document.getElementById("combatantName").value) {
+    select.value = "";
+  }
+  renderDetectHint();
+});
+document.getElementById("combatantNameSelect")?.addEventListener("change", (event) => {
+  const value = event.target.value;
+  if (!value) return;
+  const input = document.getElementById("combatantName");
+  if (!input) return;
+  input.value = value;
+  renderDetectHint();
+});
 document.getElementById("combatantCount")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("change", renderDetectHint);
 document.getElementById("campaignFilter")?.addEventListener("change", () => {
@@ -1000,7 +1072,6 @@ document.getElementById("loadStatblockAsTemplate")?.addEventListener("click", ()
 document.getElementById("savePlayer")?.addEventListener("click", () => {
   const name = document.getElementById("pcName")?.value?.trim() || "";
   const klass = document.getElementById("pcClass")?.value?.trim() || "";
-  const hpRaw = document.getElementById("pcHP")?.value?.trim() || "";
   const acRaw = document.getElementById("pcAC")?.value?.trim() || "";
   const defensesRaw = document.getElementById("pcDefenses")?.value?.trim() || "";
   const initRaw = document.getElementById("pcInit")?.value?.trim() || "";
@@ -1008,18 +1079,15 @@ document.getElementById("savePlayer")?.addEventListener("click", () => {
 
   if (!name) return setPlayerStatus("Name is required.", true);
   if (!klass) return setPlayerStatus("Class is required.", true);
-  if (!hpRaw) return setPlayerStatus("HP is required.", true);
   if (!acRaw) return setPlayerStatus("AC is required.", true);
 
-  const hp = parseInt(hpRaw, 10);
   const ac = parseInt(acRaw, 10);
   const initiative_bonus = initRaw ? parseInt(initRaw, 10) : 0;
 
-  if (Number.isNaN(hp)) return setPlayerStatus("HP must be a number.", true);
   if (Number.isNaN(ac)) return setPlayerStatus("AC must be a number.", true);
   if (initRaw && Number.isNaN(initiative_bonus)) return setPlayerStatus("Init bonus must be a number.", true);
 
-  const character = { name, class: klass, hp, ac, initiative_bonus };
+  const character = { name, class: klass, ac, initiative_bonus };
   if (defensesRaw) character.defenses = defensesRaw;
   if (tag) character.campaign_tag = tag;
 
@@ -1042,7 +1110,7 @@ document.getElementById("savePlayer")?.addEventListener("click", () => {
 });
 
 document.getElementById("clearPlayerInputs")?.addEventListener("click", () => {
-  const ids = ["pcName", "pcClass", "pcHP", "pcAC", "pcDefenses", "pcInit", "pcTag"];
+  const ids = ["pcName", "pcClass", "pcAC", "pcDefenses", "pcInit", "pcTag"];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = "";
@@ -1165,14 +1233,13 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
     }
   } else {
     if (characterId && characters[characterId]) {
-      if (!hpInput) hpInput = characters[characterId].hp;
       if (!acInput) acInput = characters[characterId].ac;
       if (!initRaw) initiative = characters[characterId].initiative_bonus;
     }
     count = 1; // no batch for players
   }
 
-  const baseHp = parseInt(hpInput, 10) || 1;
+  const baseHp = type === "monster" ? (parseInt(hpInput, 10) || 1) : null;
   const baseAc = parseInt(acInput, 10) || 10;
 
   // Determine batch initiative
@@ -1209,10 +1276,8 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
       }
     }
 
-    state.combatants.push({
+    const combatant = {
       name,
-      current_hp: baseHp,
-      max_hp: baseHp,
       ac: baseAc,
       initiative: initToUse,
       type,
@@ -1221,7 +1286,12 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
       conditions: [],
       is_npc: false,
       just_added: true
-    });
+    };
+    if (type === "monster") {
+      combatant.current_hp = baseHp;
+      combatant.max_hp = baseHp;
+    }
+    state.combatants.push(combatant);
   }
 
   state.combatants.sort((a, b) => b.initiative - a.initiative);
@@ -1252,8 +1322,6 @@ function addPlayerFromCharacter(characterId, characterData, { rollInit } = { rol
 
   state.combatants.push({
     name: s.name,
-    current_hp: parseInt(s.hp, 10) || 1,
-    max_hp: parseInt(s.max_hp ?? s.hp, 10) || (parseInt(s.hp, 10) || 1),
     ac: parseInt(s.ac, 10) || 10,
     initiative: init,
     type: "player",
@@ -1314,6 +1382,7 @@ function getHpAmount(index) {
 function applyDamage(index) {
   const val = getHpAmount(index);
   if (!val) return;
+  if (state.combatants[index]?.type !== "monster") return;
 
   state.combatants[index].current_hp -= val;
   if (state.combatants[index].current_hp < 0) state.combatants[index].current_hp = 0;
@@ -1325,6 +1394,7 @@ function applyDamage(index) {
 function applyHeal(index) {
   const val = getHpAmount(index);
   if (!val) return;
+  if (state.combatants[index]?.type !== "monster") return;
 
   const c = state.combatants[index];
   c.current_hp += val;
@@ -1562,18 +1632,20 @@ function render() {
           </div>
         </div>
 
-        <div class="rowBottom">
-          <span class="pillNum hp">HP ${c.current_hp}</span>
-          <input class="hpAdj" type="number" id="hpAdj${index}" placeholder="Amt" onclick="event.stopPropagation();">
-          <button class="miniBtn damage"
-            onclick="event.stopPropagation(); applyDamage(${index})">
-            -
-          </button>
-          <button class="miniBtn heal"
-            onclick="event.stopPropagation(); applyHeal(${index})">
-            +
-          </button>
-        </div>
+        ${c.type === "monster" ? `
+          <div class="rowBottom">
+            <span class="pillNum hp">HP ${c.current_hp}</span>
+            <input class="hpAdj" type="number" id="hpAdj${index}" placeholder="Amt" onclick="event.stopPropagation();">
+            <button class="miniBtn damage"
+              onclick="event.stopPropagation(); applyDamage(${index})">
+              -
+            </button>
+            <button class="miniBtn heal"
+              onclick="event.stopPropagation(); applyHeal(${index})">
+              +
+            </button>
+          </div>
+        ` : ``}
 
         ${c.conditions?.length ? `
           <div class="condRow">
@@ -1609,17 +1681,20 @@ function render() {
       const unitLabel = `${idx + 1}/${count}`;
       const activeClass = index === state.turnIndex ? " active" : "";
       const addedClass = c.just_added ? " justAdded" : "";
-      return `
-        <div class="groupItem${activeClass}${addedClass}" onclick="selectCombatant(${index})">
-          <div class="groupItemTop">
-            <div class="rowLeft">
-              <span class="pillNum unit">${unitLabel}</span>
+      const hpControls = group.type === "monster" ? `
               <span class="pillNum hp">HP ${c.current_hp}</span>
               <div class="groupItemControls" onclick="event.stopPropagation();">
                 <input class="hpAdj" type="number" id="hpAdj${index}" placeholder="Amt">
                 <button class="miniBtn damage" onclick="applyDamage(${index})">-</button>
                 <button class="miniBtn heal" onclick="applyHeal(${index})">+</button>
               </div>
+      ` : "";
+      return `
+        <div class="groupItem${activeClass}${addedClass}" onclick="selectCombatant(${index})">
+          <div class="groupItemTop">
+            <div class="rowLeft">
+              <span class="pillNum unit">${unitLabel}</span>
+              ${hpControls}
             </div>
             <div class="rowRight">
               <button class="miniBtn dangerMini" onclick="event.stopPropagation(); removeCombatant(${index})">✕</button>
@@ -1846,7 +1921,6 @@ function renderInfoPanel() {
             </div>
             <div class="infoStats">
               <div class="infoStat"><span class="infoLabel infoLabelPlain">AC</span> — ${escapeHtml(s.ac)}</div>
-              <div class="infoStat"><span class="infoLabel infoLabelPlain">HP</span> — ${escapeHtml(s.max_hp ?? s.hp ?? "-")}</div>
               ${defensesHtml}
               <div class="infoStat"><span class="infoLabel infoLabelPlain">Initiative</span> — ${escapeHtml(c.initiative)}</div>
             </div>
@@ -1868,7 +1942,6 @@ function renderInfoPanel() {
             </div>
             <div class="infoStats">
               <div class="infoStat"><span class="infoLabel infoLabelPlain">AC</span> — -</div>
-              <div class="infoStat"><span class="infoLabel infoLabelPlain">HP</span> — -</div>
               <div class="infoStat"><span class="infoLabel infoLabelPlain">Defenses</span> — -</div>
               <div class="infoStat"><span class="infoLabel infoLabelPlain">Initiative</span> — ${escapeHtml(c.initiative)}</div>
             </div>

@@ -422,6 +422,7 @@ strong{ color: var(--primary); }
 .statblockTemplateRow{
   display: grid;
   grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
   align-items: center;
   grid-column: 1 / -1;
