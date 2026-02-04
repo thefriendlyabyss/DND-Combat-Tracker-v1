@@ -386,6 +386,61 @@ strong{ color: var(--primary); }
 
 #combatantName{ width: 100%; }
 
+.combatantMenu{
+  display: none;
+  margin-top: 6px;
+  background: #0f1721;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+
+.combatantMenu.open{
+  display: block;
+}
+
+.combatantMenuGroup + .combatantMenuGroup{
+  margin-top: 10px;
+}
+
+.combatantMenuLabel{
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.combatantMenuItems{
+  display: grid;
+  gap: 6px;
+}
+
+.combatantMenuItem{
+  text-align: left;
+  background: #111f2b;
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.combatantMenuItem:hover,
+.combatantMenuItem:focus{
+  border-color: #2f80ed;
+  outline: none;
+}
+
+.combatantMenuEmpty{
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
 .detectHint{
   font-size: 12px;
   opacity: 0.78;
@@ -421,6 +476,7 @@ strong{ color: var(--primary); }
 
 .statblockTemplateRow{
   display: grid;
+  grid-template-columns: 1fr auto auto auto;
   grid-template-columns: 1fr auto auto;
   gap: 8px;
   align-items: center;

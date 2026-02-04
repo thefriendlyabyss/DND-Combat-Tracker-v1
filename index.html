@@ -84,6 +84,9 @@
         <select id="statblockTemplateSelect">
           <option value="">Load existing statblock...</option>
         </select>
+        <select id="statblockCampaignFilter" title="Campaign Filter">
+          <option value="">All Campaigns</option>
+        </select>
         <button id="loadStatblockForEdit" class="secondary" type="button">Edit</button>
         <button id="loadStatblockAsTemplate" class="secondary" type="button">Template</button>
       </div>
@@ -138,6 +141,8 @@
 
     <div class="addGrid">
       <div class="full">
+        <input type="text" id="combatantName" placeholder="Monster or Player Name" autocomplete="off">
+        <div id="combatantNameMenu" class="combatantMenu" role="listbox" aria-label="Combatant suggestions"></div>
         <input type="text" id="combatantName" placeholder="Monster or Player Name" list="monsterList">
         <select id="combatantNameSelect" title="Choose a Player or Monster">
           <option value="">Choose from Players or Monsters</option>
@@ -152,7 +157,6 @@
           </div>
         </div>
 
-        <datalist id="monsterList"></datalist>
       </div>
 
       <select id="campaignFilter" title="Campaign Filter">
