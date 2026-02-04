@@ -32,6 +32,8 @@
 
   --secondary: #6b7280;
   --secondary-hover: #4b5563;
+  --tertiary: #3d434f;
+  --tertiary-hover: #2e333d;
 
   --border: rgba(255,255,255,0.10);
   --border-strong: rgba(255,255,255,0.16);
@@ -247,6 +249,9 @@ button:active{ transform: translateY(1px); }
 button.secondary{ background: var(--secondary); }
 button.secondary:hover{ background: var(--secondary-hover); }
 
+button.tertiary{ background: var(--tertiary); color: #f1ede6; }
+button.tertiary:hover{ background: var(--tertiary-hover); }
+
 button.danger{ background: var(--danger); color: #fff; }
 button.danger:hover{ background: var(--danger-hover); }
 
@@ -270,9 +275,23 @@ strong{ color: var(--primary); }
 .saveRow{
   display: flex;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.saveRowMain{
+  display: flex;
+  align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  justify-content: center;
+  flex: 1 1 auto;
+}
+
+.saveRowActions{
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 
 .saveRow strong{
@@ -302,6 +321,34 @@ strong{ color: var(--primary); }
 .saveRow button{
   padding: 5px 9px;
   font-size: 0.82em;
+}
+
+.tipsPanelBody{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tipsSection{
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.tipsSection h4{
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+
+.tipsList{
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.9em;
 }
 
 /* Better touch targets on mobile */

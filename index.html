@@ -16,12 +16,17 @@
 <!-- Combat Saves -->
 <div id="combatSavesBar" class="panel">
   <div class="saveRow">
-    <strong>Combat Saves</strong>
-    <input type="text" id="saveName" placeholder="Save name">
-    <select id="saveSelect"></select>
-    <button id="saveCombat" type="button">Save</button>
-    <button id="loadCombat" class="secondary" type="button">Load</button>
-    <button id="deleteCombat" class="danger" type="button">Delete</button>
+    <div class="saveRowMain">
+      <strong>Combat Saves</strong>
+      <input type="text" id="saveName" placeholder="Save name">
+      <select id="saveSelect"></select>
+      <button id="saveCombat" type="button">Save</button>
+      <button id="loadCombat" class="secondary" type="button">Load</button>
+      <button id="deleteCombat" class="danger" type="button">Delete</button>
+    </div>
+    <div class="saveRowActions">
+      <button id="helpfulTipsPanelBtn" class="tertiary" type="button">Helpful Tips</button>
+    </div>
   </div>
   <div id="combatSaveStatus" class="subtle"></div>
 </div>
@@ -110,7 +115,7 @@
         <button id="exportLocalStatblocks" class="secondary" type="button">Export Local</button>
         <button id="clearLocalStatblocks" class="danger" type="button">Clear Local</button>
       </div>
-      <div id="statblockStatus" class="subtle">Saved monsters are stored locally in this browser. Use [label](https://...) or &lt;https://...&gt; to add links.</div>
+      <div id="statblockStatus" class="subtle">Saved monsters are stored locally in this browser.</div>
     </div>
     <div id="playerPanel" class="statblockGrid panelHidden">
       <input type="text" id="pcName" placeholder="Name">
@@ -192,6 +197,31 @@
         <button id="importJsonBtn" type="button">Import JSON</button>
       </div>
       <div id="importJsonStatus" class="subtle"></div>
+    </div>
+  </div>
+
+  <div id="helpfulTipsPanel" class="panel drawerPanel" data-drawer-panel="helpfulTipsPanel">
+    <div class="infoHeader">
+      <h3>Helpful Tips</h3>
+      <button id="toggleHelpfulTips" class="secondary" type="button">Close</button>
+    </div>
+    <div class="tipsPanelBody">
+      <div class="tipsSection">
+        <h4>Quick Tips</h4>
+        <ul class="tipsList">
+          <li>Use [label](https://...) or &lt;https://...&gt; in traits/actions to add clickable links.</li>
+          <li>Use Source Tags in your statblocks to filter by campaign.</li>
+          <li>Toggle “Auto-roll init” when importing PCs to keep the table moving.</li>
+        </ul>
+      </div>
+      <div class="tipsSection">
+        <h4>Handy Shortcuts</h4>
+        <ul class="tipsList">
+          <li>Use “Add Combatant” to bring in monsters/players quickly from saved lists.</li>
+          <li>Use “Create Combatant” to build a monster or player from scratch.</li>
+          <li>Click a combatant in the list to open the Info Panel for quick edits.</li>
+        </ul>
+      </div>
     </div>
   </div>
 
