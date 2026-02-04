@@ -1573,10 +1573,11 @@ function render() {
         hasNew = true;
       }
 
+      const safeCombatantName = escapeHtml(c.name);
       li.innerHTML = `
         <div class="rowTop">
           <div class="rowLeft">
-            <strong>${c.name}</strong>
+            <strong>${safeCombatantName}</strong>
 
             <span class="pillNum init">Init ${c.initiative}</span>
             <span class="pillNum ac">AC ${c.ac}</span>
@@ -1606,7 +1607,7 @@ function render() {
         ${c.conditions?.length ? `
           <div class="condRow">
             ${c.conditions.map(cd => {
-              const label = cd.name + (cd.duration !== null ? ` (${cd.duration})` : "");
+              const label = escapeHtml(cd.name) + (cd.duration !== null ? ` (${cd.duration})` : "");
               const cls = conditionClass(cd.name);
               return `<span class="condPill ${cls}">${label}</span>`;
             }).join("")}
@@ -1659,7 +1660,7 @@ function render() {
           ${c.conditions?.length ? `
             <div class="condRow">
               ${c.conditions.map(cd => {
-                const label = cd.name + (cd.duration !== null ? ` (${cd.duration})` : "");
+                const label = escapeHtml(cd.name) + (cd.duration !== null ? ` (${cd.duration})` : "");
                 const cls = conditionClass(cd.name);
                 return `<span class="condPill ${cls}">${label}</span>`;
               }).join("")}
