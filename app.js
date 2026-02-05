@@ -1686,6 +1686,7 @@ function render() {
   const list = document.getElementById("combatList");
   list.innerHTML = "";
   let hasNew = false;
+  let renderedCount = 0;
 
   const focusMode = isFocusTurnMode();
   const focusSet = focusMode ? getFocusIndices(state.combatants.length, state.turnIndex, 2) : null;
@@ -1784,6 +1785,7 @@ function render() {
       li.onclick = () => selectCombatant(index);
 
       list.appendChild(li);
+      renderedCount += 1;
       return;
     }
 
@@ -1856,7 +1858,18 @@ function render() {
     `;
 
     list.appendChild(groupLi);
+    renderedCount += 1;
   });
+
+  const isWide = window.matchMedia("(min-width: 1200px)").matches;
+  if (isWide) {
+    list.classList.add("twoColumn");
+    const rows = Math.max(1, Math.ceil(renderedCount / 2));
+    list.style.gridTemplateRows = `repeat(${rows}, auto)`;
+  } else {
+    list.classList.remove("twoColumn");
+    list.style.gridTemplateRows = "";
+  }
 
   document.getElementById("round").textContent = "Round: " + state.round;
 
