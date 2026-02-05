@@ -400,15 +400,10 @@ function renderDetectHint() {
   const hint = document.getElementById("detectHint");
   const name = document.getElementById("combatantNameSelect")?.value?.trim() || "";
   const count = parseInt(document.getElementById("combatantCount")?.value ?? "1", 10) || 1;
-  const hpInput = document.getElementById("combatantHP");
   if (!hint) return;
 
   if (!name) {
     hint.innerHTML = 'Detected: <span class="tag unknown">—</span>';
-    if (hpInput) {
-      hpInput.disabled = false;
-      hpInput.placeholder = "Monster HP";
-    }
     return;
   }
 
@@ -426,12 +421,6 @@ function renderDetectHint() {
   }
 
   hint.innerHTML = `Detected: <span class="tag ${cls}">${label}</span>`;
-  if (hpInput) {
-    const isPlayer = cls === "player";
-    hpInput.disabled = isPlayer;
-    hpInput.placeholder = isPlayer ? "Monster HP" : "Monster HP";
-    if (isPlayer) hpInput.value = "";
-  }
 }
 
 function applyAddPanelState() {
@@ -1170,11 +1159,7 @@ normalizeLoadedState();
 // ============================
 document.getElementById("addCombatantBtn").addEventListener("click", () => {
   const baseName = document.getElementById("combatantNameSelect").value.trim();
-  let hpInput = document.getElementById("combatantHP").value.trim();
-  let acInput = document.getElementById("combatantAC").value.trim();
-
-  const initRaw = document.getElementById("combatantInit").value.trim();
-  let initiative = parseInt(initRaw, 10);
+  let initiative = 0;
 
   const countRaw = document.getElementById("combatantCount")?.value ?? "1";
   let count = parseInt(String(countRaw).trim(), 10);
@@ -1194,36 +1179,32 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   let characterId = detected.characterId;
 
   // Default fills based on detected source
+  let baseHp = null;
+  let baseAc = 10;
+  let initBonus = 0;
   if (type === "monster") {
     if (statblockId && statblocks[statblockId]) {
-      if (!hpInput) hpInput = statblocks[statblockId].hp;
-      if (!acInput) acInput = statblocks[statblockId].ac;
+      baseHp = parseInt(statblocks[statblockId].hp, 10) || 1;
+      baseAc = parseInt(statblocks[statblockId].ac, 10) || 10;
+      initBonus = monsterInitBonusFromStatblock(statblockId);
     }
   } else {
     if (characterId && characters[characterId]) {
-      if (!acInput) acInput = characters[characterId].ac;
-      if (!initRaw) initiative = characters[characterId].initiative_bonus;
+      baseAc = parseInt(characters[characterId].ac, 10) || 10;
+      initBonus = parseInt(characters[characterId].initiative_bonus, 10) || 0;
     }
     count = 1; // no batch for players
   }
 
-  const baseHp = type === "monster" ? (parseInt(hpInput, 10) || 1) : null;
-  const baseAc = parseInt(acInput, 10) || 10;
+  if (type === "monster") {
+    baseHp = baseHp ?? 1;
+  }
 
   // Determine batch initiative
   let batchInit = initiative;
 
-  if (!initRaw && autoRoll) {
-    let bonus = 0;
-    if (type === "player" && characterId && characters[characterId]) {
-      bonus = parseInt(characters[characterId].initiative_bonus, 10) || 0;
-    }
-    if (type === "monster") {
-      bonus = monsterInitBonusFromStatblock(statblockId);
-    }
-    batchInit = rollD20() + bonus;
-  } else {
-    if (Number.isNaN(batchInit)) batchInit = 0;
+  if (autoRoll) {
+    batchInit = rollD20() + initBonus;
   }
 
   // Name numbering for monster batches
@@ -1236,9 +1217,8 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
     let initToUse = batchInit;
 
     if (!sameInit) {
-      if (!initRaw && autoRoll) {
-        const bonus = monsterInitBonusFromStatblock(statblockId);
-        initToUse = rollD20() + bonus;
+      if (autoRoll) {
+        initToUse = rollD20() + initBonus;
       } else {
         initToUse = Number.isNaN(initiative) ? 0 : initiative;
       }
@@ -1270,9 +1250,6 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
 
   // Clear form
   document.getElementById("combatantNameSelect").value = "";
-  document.getElementById("combatantHP").value = "";
-  document.getElementById("combatantAC").value = "";
-  document.getElementById("combatantInit").value = "";
   if (document.getElementById("combatantCount")) document.getElementById("combatantCount").value = "1";
   renderDetectHint();
 });
