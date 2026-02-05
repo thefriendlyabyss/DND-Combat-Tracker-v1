@@ -555,14 +555,13 @@ ul#combatList{
 }
 
 @media (min-width: 1200px){
-  ul#combatList.twoColumn{
+  ul#combatList{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-flow: column;
     gap: 8px 12px;
   }
 
-  ul#combatList.twoColumn li.combatant{
+  li.combatant{
     margin-bottom: 0;
   }
 }
