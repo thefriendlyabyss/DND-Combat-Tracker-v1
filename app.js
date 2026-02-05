@@ -1687,6 +1687,7 @@ function render() {
   list.innerHTML = "";
   let hasNew = false;
   let renderedCount = 0;
+  const renderedItems = [];
 
   const focusMode = isFocusTurnMode();
   const focusSet = focusMode ? getFocusIndices(state.combatants.length, state.turnIndex, 2) : null;
@@ -1786,6 +1787,7 @@ function render() {
 
       list.appendChild(li);
       renderedCount += 1;
+      renderedItems.push(li);
       return;
     }
 
@@ -1859,6 +1861,7 @@ function render() {
 
     list.appendChild(groupLi);
     renderedCount += 1;
+    renderedItems.push(groupLi);
   });
 
   const isWide = window.matchMedia("(min-width: 1200px)").matches;
@@ -1866,9 +1869,19 @@ function render() {
     list.classList.add("twoColumn");
     const rows = Math.max(1, Math.ceil(renderedCount / 2));
     list.style.gridTemplateRows = `repeat(${rows}, auto)`;
+    renderedItems.forEach((item, idx) => {
+      const column = idx < rows ? 1 : 2;
+      const row = (idx % rows) + 1;
+      item.style.gridColumn = String(column);
+      item.style.gridRow = String(row);
+    });
   } else {
     list.classList.remove("twoColumn");
     list.style.gridTemplateRows = "";
+    renderedItems.forEach(item => {
+      item.style.gridColumn = "";
+      item.style.gridRow = "";
+    });
   }
 
   document.getElementById("round").textContent = "Round: " + state.round;
