@@ -1869,15 +1869,15 @@ function render() {
     list.classList.add("twoColumn");
     const rows = Math.max(1, Math.ceil(renderedCount / 2));
     list.style.gridTemplateRows = `repeat(${rows}, auto)`;
+    list.style.gridAutoFlow = "column";
     renderedItems.forEach((item, idx) => {
-      const column = idx < rows ? 1 : 2;
-      const row = (idx % rows) + 1;
-      item.style.gridColumn = String(column);
-      item.style.gridRow = String(row);
+      item.style.gridColumn = "";
+      item.style.gridRow = "";
     });
   } else {
     list.classList.remove("twoColumn");
     list.style.gridTemplateRows = "";
+    list.style.gridAutoFlow = "";
     renderedItems.forEach(item => {
       item.style.gridColumn = "";
       item.style.gridRow = "";
