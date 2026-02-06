@@ -650,10 +650,10 @@ function populateNameDatalist() {
   const { monsters, players } = getFilteredCombatantNames();
 
   const playerOptions = players
-    .map(n => `<option value="${escapeHtml(n)}" label="Player — ${escapeHtml(n)}"></option>`)
+    .map(n => `<option value="${escapeHtml(n)}" label="Player"></option>`)
     .join("");
   const monsterOptions = monsters
-    .map(n => `<option value="${escapeHtml(n)}" label="Monster — ${escapeHtml(n)}"></option>`)
+    .map(n => `<option value="${escapeHtml(n)}" label="Monster"></option>`)
     .join("");
   datalist.innerHTML = `${playerOptions}${monsterOptions}`;
 
