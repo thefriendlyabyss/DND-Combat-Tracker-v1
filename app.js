@@ -653,10 +653,13 @@ function populateNameDatalist() {
 
   const { monsters, players } = getFilteredCombatantNames();
 
-  const options = [...players, ...monsters]
-    .map(n => `<option value="${escapeHtml(n)}"></option>`)
+  const playerOptions = players
+    .map(n => `<option value="${escapeHtml(n)}" label="Player — ${escapeHtml(n)}"></option>`)
     .join("");
-  datalist.innerHTML = options;
+  const monsterOptions = monsters
+    .map(n => `<option value="${escapeHtml(n)}" label="Monster — ${escapeHtml(n)}"></option>`)
+    .join("");
+  datalist.innerHTML = `${playerOptions}${monsterOptions}`;
 
   renderDetectHint();
 }
