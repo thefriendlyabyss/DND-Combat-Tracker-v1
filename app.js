@@ -399,6 +399,7 @@ function detectTypeAndSourceIds(name, count) {
 function renderDetectHint() {
   const hint = document.getElementById("detectHint");
   const name = document.getElementById("combatantNameSelect")?.value?.trim() || "";
+  const typeOverride = document.getElementById("combatantTypeOverride")?.value || "auto";
   const count = parseInt(document.getElementById("combatantCount")?.value ?? "1", 10) || 1;
   if (!hint) return;
 
@@ -413,7 +414,10 @@ function renderDetectHint() {
   let label = "Unknown";
   let cls = "unknown";
 
-  if (statblockId && !characterId) { label = "Monster"; cls = "monster"; }
+  if (typeOverride !== "auto") {
+    label = typeOverride === "monster" ? "Monster (manual)" : "Player (manual)";
+    cls = typeOverride === "monster" ? "monster" : "player";
+  } else if (statblockId && !characterId) { label = "Monster"; cls = "monster"; }
   else if (!statblockId && characterId) { label = "Player"; cls = "player"; }
   else if (statblockId && characterId) {
     if (count > 1) { label = "Monster (both)"; cls = "monster"; }
@@ -644,28 +648,15 @@ function getFilteredCombatantNames() {
 }
 
 function populateNameDatalist() {
-  const select = document.getElementById("combatantNameSelect");
-  if (!select) return;
+  const datalist = document.getElementById("combatantNameOptions");
+  if (!datalist) return;
 
   const { monsters, players } = getFilteredCombatantNames();
 
-  if (select) {
-    const buildGroup = (label, list) => {
-      if (!list.length) return "";
-      const options = list
-        .map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`)
-        .join("");
-      return `<optgroup label="${escapeHtml(label)}">${options}</optgroup>`;
-    };
-
-    const grouped = [
-      `<option value="">Choose from Players or Monsters</option>`,
-      buildGroup("Players", players),
-      buildGroup("Monsters", monsters)
-    ].join("");
-
-    select.innerHTML = grouped;
-  }
+  const options = [...players, ...monsters]
+    .map(n => `<option value="${escapeHtml(n)}"></option>`)
+    .join("");
+  datalist.innerHTML = options;
 
   renderDetectHint();
 }
@@ -798,11 +789,10 @@ function campaignMatchesFilter(entry, filter) {
 }
 
 // UI listeners (safe if elements exist)
-document.getElementById("combatantNameSelect")?.addEventListener("change", (event) => {
-  renderDetectHint();
-});
+document.getElementById("combatantNameSelect")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("change", renderDetectHint);
+document.getElementById("combatantTypeOverride")?.addEventListener("change", renderDetectHint);
 document.getElementById("campaignFilter")?.addEventListener("change", () => {
   populateNameDatalist();
 });
@@ -1159,7 +1149,13 @@ normalizeLoadedState();
 // ============================
 document.getElementById("addCombatantBtn").addEventListener("click", () => {
   const baseName = document.getElementById("combatantNameSelect").value.trim();
-  let initiative = 0;
+  const typeOverride = document.getElementById("combatantTypeOverride")?.value || "auto";
+  const quickInitRaw = document.getElementById("quickInit")?.value ?? "";
+  const quickHpRaw = document.getElementById("quickHP")?.value ?? "";
+  const quickAcRaw = document.getElementById("quickAC")?.value ?? "";
+  const quickInit = parseInt(String(quickInitRaw).trim(), 10);
+  const quickHp = parseInt(String(quickHpRaw).trim(), 10);
+  const quickAc = parseInt(String(quickAcRaw).trim(), 10);
 
   const countRaw = document.getElementById("combatantCount")?.value ?? "1";
   let count = parseInt(String(countRaw).trim(), 10);
@@ -1174,9 +1170,18 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   const beforeSelectedRef = selectedIndex !== null ? state.combatants[selectedIndex] : null;
 
   const detected = detectTypeAndSourceIds(baseName, count);
-  const type = detected.type;
+  let type = detected.type;
   let statblockId = detected.statblockId;
   let characterId = detected.characterId;
+
+  if (typeOverride !== "auto") {
+    type = typeOverride;
+    if (type === "monster") {
+      characterId = null;
+    } else {
+      statblockId = null;
+    }
+  }
 
   // Default fills based on detected source
   let baseHp = null;
@@ -1199,12 +1204,21 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   if (type === "monster") {
     baseHp = baseHp ?? 1;
   }
+  if (!Number.isNaN(quickAc)) {
+    baseAc = quickAc;
+  }
+  if (type === "monster" && !Number.isNaN(quickHp)) {
+    baseHp = quickHp;
+  }
 
   // Determine batch initiative
-  let batchInit = initiative;
+  let batchInit = 0;
 
   if (autoRoll) {
-    batchInit = rollD20() + initBonus;
+    const bonus = Number.isNaN(quickInit) ? initBonus : quickInit;
+    batchInit = rollD20() + bonus;
+  } else if (!Number.isNaN(quickInit)) {
+    batchInit = quickInit;
   }
 
   // Name numbering for monster batches
@@ -1218,9 +1232,10 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
 
     if (!sameInit) {
       if (autoRoll) {
-        initToUse = rollD20() + initBonus;
+        const bonus = Number.isNaN(quickInit) ? initBonus : quickInit;
+        initToUse = rollD20() + bonus;
       } else {
-        initToUse = Number.isNaN(initiative) ? 0 : initiative;
+        initToUse = Number.isNaN(quickInit) ? 0 : quickInit;
       }
     }
 
@@ -1251,6 +1266,10 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   // Clear form
   document.getElementById("combatantNameSelect").value = "";
   if (document.getElementById("combatantCount")) document.getElementById("combatantCount").value = "1";
+  if (document.getElementById("combatantTypeOverride")) document.getElementById("combatantTypeOverride").value = "auto";
+  if (document.getElementById("quickInit")) document.getElementById("quickInit").value = "";
+  if (document.getElementById("quickHP")) document.getElementById("quickHP").value = "";
+  if (document.getElementById("quickAC")) document.getElementById("quickAC").value = "";
   renderDetectHint();
 });
 

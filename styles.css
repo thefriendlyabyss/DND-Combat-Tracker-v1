@@ -412,6 +412,27 @@ strong{ color: var(--primary); }
   font-size: 0.85em;
 }
 
+#combatantNameSelect{
+  width: 100%;
+}
+
+.quickCreateRow{
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+}
+
+.quickCreateRow .subtle{
+  grid-column: 1 / -1;
+}
+
+.quickCreateRow input,
+.quickCreateRow select{
+  width: 100%;
+}
+
 #combatantName{ width: 100%; }
 
 .combatantMenu{
@@ -1232,6 +1253,7 @@ li.combatant.active .turnTag{
 
   .addGrid{ grid-template-columns: 1fr; }
   .statblockGrid{ grid-template-columns: 1fr; }
+  .quickCreateRow{ grid-template-columns: 1fr 1fr; }
 
   .infoControls{
     grid-template-columns: 1fr;
