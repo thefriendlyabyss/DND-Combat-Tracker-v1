@@ -412,6 +412,12 @@ strong{ color: var(--primary); }
   font-size: 0.85em;
 }
 
+.addNameRow{
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
 #combatantNameSelect{
   width: 100%;
 }
@@ -1252,6 +1258,7 @@ li.combatant.active .turnTag{
   }
 
   .addGrid{ grid-template-columns: 1fr; }
+  .addNameRow{ grid-template-columns: 1fr; }
   .statblockGrid{ grid-template-columns: 1fr; }
   .quickCreateRow{ grid-template-columns: 1fr 1fr; }
 

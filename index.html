@@ -144,7 +144,12 @@
 
     <div class="addGrid">
       <div class="full">
-        <input id="combatantNameSelect" type="text" list="combatantNameOptions" placeholder="Choose or type a Player or Monster" title="Choose or type a Player or Monster">
+        <div class="addNameRow">
+          <input id="combatantNameSelect" type="text" list="combatantNameOptions" placeholder="Choose or type a Player or Monster" title="Choose or type a Player or Monster">
+          <select id="campaignFilter" title="Source Filter">
+            <option value="">All Sources</option>
+          </select>
+        </div>
         <datalist id="combatantNameOptions"></datalist>
 
         <div class="detectRow">
@@ -157,17 +162,12 @@
         </div>
 
         <div class="quickCreateRow">
-          <span class="subtle">Quick create (optional)</span>
           <input type="number" id="quickInit" placeholder="Initiative" title="Initiative">
           <input type="number" id="quickHP" placeholder="HP" title="HP" min="0">
           <input type="number" id="quickAC" placeholder="AC" title="AC" min="0">
           <input type="text" id="quickTag" placeholder="Source Tag" title="Source Tag">
         </div>
       </div>
-
-      <select id="campaignFilter" title="Source Filter">
-        <option value="">All Sources</option>
-      </select>
       <button id="addCombatantBtn" class="addInline" type="button">Add</button>
     </div>
 
