@@ -1761,13 +1761,13 @@ function render() {
           <div class="rowBottom">
             <span class="pillNum hp">HP ${c.current_hp}</span>
             <input class="hpAdj" type="number" id="hpAdj${index}" placeholder="Amt" onclick="event.stopPropagation();">
-            <button class="miniBtn damage"
-              onclick="event.stopPropagation(); applyDamage(${index})">
-              -
-            </button>
             <button class="miniBtn heal"
               onclick="event.stopPropagation(); applyHeal(${index})">
               +
+            </button>
+            <button class="miniBtn damage"
+              onclick="event.stopPropagation(); applyDamage(${index})">
+              -
             </button>
           </div>
         ` : ``}
@@ -1812,8 +1812,8 @@ function render() {
               <span class="pillNum hp">HP ${c.current_hp}</span>
               <div class="groupItemControls" onclick="event.stopPropagation();">
                 <input class="hpAdj" type="number" id="hpAdj${index}" placeholder="Amt">
-                <button class="miniBtn damage" onclick="applyDamage(${index})">-</button>
                 <button class="miniBtn heal" onclick="applyHeal(${index})">+</button>
+                <button class="miniBtn damage" onclick="applyDamage(${index})">-</button>
               </div>
       ` : "";
       return `
