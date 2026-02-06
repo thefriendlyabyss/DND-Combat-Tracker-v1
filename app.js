@@ -396,6 +396,17 @@ function detectTypeAndSourceIds(name, count) {
   return { type: "monster", statblockId: null, characterId: null };
 }
 
+function getStatblockForCombatant(combatant) {
+  if (!combatant?.statblock_id) return null;
+  const base = statblocks[combatant.statblock_id] || null;
+  if (!base) return null;
+  const overrides = combatant.statblock_overrides;
+  if (overrides && typeof overrides === "object") {
+    return { ...base, ...overrides };
+  }
+  return base;
+}
+
 function renderDetectHint() {
   const hint = document.getElementById("detectHint");
   const name = document.getElementById("combatantNameSelect")?.value?.trim() || "";
@@ -867,6 +878,15 @@ document.addEventListener("click", (event) => {
 
   const monsterDetailsBtn = event.target.closest(".monsterDetailsBtn");
   if (monsterDetailsBtn) {
+    const combatantIndexRaw = monsterDetailsBtn.dataset.combatantIndex || "";
+    const combatantIndex = combatantIndexRaw === "" ? null : parseInt(combatantIndexRaw, 10);
+    if (combatantIndex !== null && !Number.isNaN(combatantIndex)) {
+      const combatant = state.combatants[combatantIndex];
+      const statblock = getStatblockForCombatant(combatant);
+      const title = statblock?.name || monsterDetailsBtn.dataset.statblockName || "Monster Details";
+      openMonsterDetailsDrawer(statblock, title);
+      return;
+    }
     const statblockId = monsterDetailsBtn.dataset.statblockId || "";
     const statblock = statblocks[statblockId] || null;
     const title = statblock?.name || monsterDetailsBtn.dataset.statblockName || "Monster Details";
@@ -1199,6 +1219,15 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   if (type === "monster" && !Number.isNaN(quickHp)) {
     baseHp = quickHp;
   }
+  let statblockOverrides = null;
+  if (type === "monster" && statblockId && statblocks[statblockId]) {
+    const overrides = {};
+    if (!Number.isNaN(quickAc)) overrides.ac = quickAc;
+    if (!Number.isNaN(quickHp)) overrides.hp = quickHp;
+    if (!Number.isNaN(quickInit)) overrides.initiative_bonus = quickInit;
+    if (quickTag) overrides.campaign_tag = quickTag;
+    if (Object.keys(overrides).length) statblockOverrides = overrides;
+  }
   if (type === "monster" && !statblockId) {
     const existingMap = { ...baseStatblocks, ...localStatblocks };
     const id = makeStatblockIdFromName(baseName, existingMap);
@@ -1253,6 +1282,7 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
       initiative: initToUse,
       type,
       statblock_id: type === "monster" ? statblockId : null,
+      statblock_overrides: type === "monster" ? statblockOverrides : null,
       character_id: type === "player" ? characterId : null,
       conditions: [],
       is_npc: false,
@@ -1958,7 +1988,7 @@ function renderInfoPanel() {
   const safeName = escapeHtml(c.name);
   const initBonus = (() => {
     if (c.type === "monster") {
-      const b = c.statblock_id ? statblocks[c.statblock_id] : null;
+      const b = getStatblockForCombatant(c);
       return b?.initiative_bonus ?? "-";
     }
     const s = c.character_id ? characters[c.character_id] : null;
@@ -2012,7 +2042,7 @@ function renderInfoPanel() {
   let leftHtml = "";
 
   if (c.type === "monster") {
-    const b = c.statblock_id ? statblocks[c.statblock_id] : null;
+    const b = getStatblockForCombatant(c);
 
     if (b) {
       const defenses = formatDefenses(
@@ -2044,7 +2074,7 @@ function renderInfoPanel() {
                 <input type="checkbox" id="panelNpcToggle" ${c.is_npc ? "checked" : ""} onchange="setNpcFlag(${selectedIndex}, this.checked)">
                 NPC
               </label>
-              <button class="secondary monsterDetailsBtn" type="button" data-statblock-id="${escapeHtml(c.statblock_id)}" data-statblock-name="${escapeHtml(b.name || safeName)}">Details</button>
+              <button class="secondary monsterDetailsBtn" type="button" data-statblock-id="${escapeHtml(c.statblock_id)}" data-combatant-index="${selectedIndex}" data-statblock-name="${escapeHtml(b.name || safeName)}">Details</button>
             </div>
             <div class="infoStats">
               <div class="infoStat"><span class="infoLabel infoLabelPlain">AC</span> — ${escapeHtml(b.ac)}</div>
