@@ -419,7 +419,7 @@ strong{ color: var(--primary); }
 .quickCreateRow{
   margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   align-items: center;
 }

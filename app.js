@@ -399,7 +399,6 @@ function detectTypeAndSourceIds(name, count) {
 function renderDetectHint() {
   const hint = document.getElementById("detectHint");
   const name = document.getElementById("combatantNameSelect")?.value?.trim() || "";
-  const typeOverride = document.getElementById("combatantTypeOverride")?.value || "auto";
   const count = parseInt(document.getElementById("combatantCount")?.value ?? "1", 10) || 1;
   if (!hint) return;
 
@@ -414,10 +413,7 @@ function renderDetectHint() {
   let label = "Unknown";
   let cls = "unknown";
 
-  if (typeOverride !== "auto") {
-    label = typeOverride === "monster" ? "Monster (manual)" : "Player (manual)";
-    cls = typeOverride === "monster" ? "monster" : "player";
-  } else if (statblockId && !characterId) { label = "Monster"; cls = "monster"; }
+  if (statblockId && !characterId) { label = "Monster"; cls = "monster"; }
   else if (!statblockId && characterId) { label = "Player"; cls = "player"; }
   else if (statblockId && characterId) {
     if (count > 1) { label = "Monster (both)"; cls = "monster"; }
@@ -792,7 +788,6 @@ function campaignMatchesFilter(entry, filter) {
 document.getElementById("combatantNameSelect")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("input", renderDetectHint);
 document.getElementById("combatantCount")?.addEventListener("change", renderDetectHint);
-document.getElementById("combatantTypeOverride")?.addEventListener("change", renderDetectHint);
 document.getElementById("campaignFilter")?.addEventListener("change", () => {
   populateNameDatalist();
 });
@@ -1149,10 +1144,10 @@ normalizeLoadedState();
 // ============================
 document.getElementById("addCombatantBtn").addEventListener("click", () => {
   const baseName = document.getElementById("combatantNameSelect").value.trim();
-  const typeOverride = document.getElementById("combatantTypeOverride")?.value || "auto";
   const quickInitRaw = document.getElementById("quickInit")?.value ?? "";
   const quickHpRaw = document.getElementById("quickHP")?.value ?? "";
   const quickAcRaw = document.getElementById("quickAC")?.value ?? "";
+  const quickTag = document.getElementById("quickTag")?.value?.trim() || "";
   const quickInit = parseInt(String(quickInitRaw).trim(), 10);
   const quickHp = parseInt(String(quickHpRaw).trim(), 10);
   const quickAc = parseInt(String(quickAcRaw).trim(), 10);
@@ -1173,15 +1168,6 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   let type = detected.type;
   let statblockId = detected.statblockId;
   let characterId = detected.characterId;
-
-  if (typeOverride !== "auto") {
-    type = typeOverride;
-    if (type === "monster") {
-      characterId = null;
-    } else {
-      statblockId = null;
-    }
-  }
 
   // Default fills based on detected source
   let baseHp = null;
@@ -1209,6 +1195,25 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   }
   if (type === "monster" && !Number.isNaN(quickHp)) {
     baseHp = quickHp;
+  }
+  if (type === "monster" && !statblockId) {
+    const existingMap = { ...baseStatblocks, ...localStatblocks };
+    const id = makeStatblockIdFromName(baseName, existingMap);
+    const statblock = {
+      name: baseName,
+      ac: baseAc,
+      hp: baseHp
+    };
+    if (!Number.isNaN(quickInit)) {
+      statblock.initiative_bonus = quickInit;
+    }
+    if (quickTag) {
+      statblock.campaign_tag = quickTag;
+    }
+    localStatblocks = { ...localStatblocks, [id]: statblock };
+    saveLocalStatblocks(localStatblocks);
+    refreshStatblocks();
+    statblockId = id;
   }
 
   // Determine batch initiative
@@ -1266,10 +1271,10 @@ document.getElementById("addCombatantBtn").addEventListener("click", () => {
   // Clear form
   document.getElementById("combatantNameSelect").value = "";
   if (document.getElementById("combatantCount")) document.getElementById("combatantCount").value = "1";
-  if (document.getElementById("combatantTypeOverride")) document.getElementById("combatantTypeOverride").value = "auto";
   if (document.getElementById("quickInit")) document.getElementById("quickInit").value = "";
   if (document.getElementById("quickHP")) document.getElementById("quickHP").value = "";
   if (document.getElementById("quickAC")) document.getElementById("quickAC").value = "";
+  if (document.getElementById("quickTag")) document.getElementById("quickTag").value = "";
   renderDetectHint();
 });
 
